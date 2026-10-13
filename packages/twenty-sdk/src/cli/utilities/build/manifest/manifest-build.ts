@@ -13,6 +13,7 @@ import { extractFrontComponentSharedDependencies } from '@/cli/utilities/build/m
 import { validateConditionalAvailabilityUsage } from '@/cli/utilities/build/manifest/utils/validate-conditional-availability-usage';
 import { validateAgentRolesWithinApplicationRole } from '@/cli/utilities/build/manifest/utils/validate-agent-roles-within-application-role';
 import { validateViewFilterOperands } from '@/cli/utilities/build/manifest/utils/validate-view-filter-operands';
+import { toPosixRelativePath } from '@/cli/utilities/file/to-posix-relative-path';
 import { getEngineVersionRange } from '@/cli/utilities/version/get-engine-version-range';
 import { type ApplicationConfig, type LogicFunctionConfig } from '@/sdk/define';
 import { type CommandMenuItemConfig } from '@/sdk/define/command-menu-items/command-menu-item-config';
@@ -28,7 +29,7 @@ import { type TimelineActivityTypeConfig } from '@/sdk/define/timeline-activity-
 import { type SettingsMenuItemConfig } from '@/sdk/define/settings-menu-items/settings-menu-item-config';
 import { type ViewConfig } from '@/sdk/define/views/view-config';
 import { readFile } from 'node:fs/promises';
-import { basename, extname, join, relative } from 'path';
+import { basename, extname, join } from 'path';
 import { glob } from 'tinyglobby';
 import {
   type AgentManifest,
@@ -162,7 +163,7 @@ export const buildManifest = async (
 
   for (const filePath of filePaths) {
     const fileContent = await readFile(filePath, 'utf-8');
-    const relativePath = relative(appPath, filePath);
+    const relativePath = toPosixRelativePath(appPath, filePath);
 
     errors.push(
       ...validateConditionalAvailabilityUsage(fileContent, relativePath),
@@ -386,7 +387,7 @@ export const buildManifest = async (
 
         const { component, ...rest } = extract.config;
 
-        const relativeFilePath = relative(appPath, filePath);
+        const relativeFilePath = toPosixRelativePath(appPath, filePath);
 
         const config: FrontComponentManifest = {
           ...rest,
@@ -564,7 +565,7 @@ export const buildManifest = async (
   const assetFiles = await loadAssets(appPath);
 
   for (const assetFile of assetFiles) {
-    const relativePath = relative(appPath, assetFile);
+    const relativePath = toPosixRelativePath(appPath, assetFile);
     publicAssets.push({
       filePath: relativePath,
       fileName: basename(assetFile),

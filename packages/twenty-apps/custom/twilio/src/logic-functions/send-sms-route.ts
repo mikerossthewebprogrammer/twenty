@@ -17,7 +17,7 @@ type SendSmsRouteBody = {
 };
 
 type SendSmsRouteResult =
-  | { success: true; messageSid: string }
+  | { success: true; messageSid: string; warning: string | null }
   | { success: false; error: string };
 
 const readPersonPhoneNumber = async (personId: string): Promise<string> => {
@@ -56,9 +56,14 @@ const handler = async (
       mediaUrls: [],
       idempotencyKey,
       personId,
+      callerUserWorkspaceId: event.userWorkspaceId,
     });
 
-    return { success: true, messageSid: result.messageSid };
+    return {
+      success: true,
+      messageSid: result.messageSid,
+      warning: result.warning,
+    };
   } catch (error) {
     return {
       success: false,

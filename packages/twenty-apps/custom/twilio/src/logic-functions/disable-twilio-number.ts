@@ -7,6 +7,7 @@ import {
 
 import { DISABLE_TWILIO_NUMBER_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER } from 'src/constants/universal-identifiers';
 import { type TwilioRouteResult } from 'src/logic-functions/types/twilio-settings.type';
+import { assertCanManageTwilioConnection } from 'src/logic-functions/utils/assert-can-manage-twilio-connection';
 import { getTwilioCredentials } from 'src/logic-functions/utils/get-twilio-credentials';
 import {
   deleteTwilioNumberBinding,
@@ -30,7 +31,8 @@ const handler = async (
   }
 
   try {
-    // Also confirms the requesting member may manage this connection
+    await assertCanManageTwilioConnection(binding.connectedAccountId);
+
     const connection = await getConnection(binding.connectedAccountId);
 
     await setTwilioPhoneNumberSmsUrl({

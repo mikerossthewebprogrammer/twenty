@@ -1,10 +1,12 @@
 import { MetadataApiClient } from 'twenty-client-sdk/metadata';
 import { RestApiClient } from 'twenty-client-sdk/rest';
+import { kv } from 'twenty-sdk/logic-function';
 
 import { ATTACHMENT_FILE_FIELD_UNIVERSAL_IDENTIFIER } from 'src/constants/universal-identifiers';
 import { type InboundTwilioMedia } from 'src/logic-functions/types/inbound-twilio-message.type';
 import { type TwilioCredentials } from 'src/logic-functions/types/twilio-credentials.type';
 import { buildMmsFileName } from 'src/logic-functions/utils/build-mms-file-name';
+import { saveEachMediaOnce } from 'src/logic-functions/utils/save-each-media-once';
 import { buildTwilioAuthorizationHeader } from 'src/logic-functions/utils/twilio-api-request';
 
 const downloadTwilioMedia = async ({
@@ -87,25 +89,30 @@ export const saveMmsMediaToContact = async ({
   personId: string;
   credentials: TwilioCredentials;
 }): Promise<string[]> => {
-  const savedFileNames: string[] = [];
+  const fileNames = media.map((item, index) =>
+    buildMmsFileName({ messageSid, index, contentType: item.contentType }),
+  );
 
-  for (const [index, item] of media.entries()) {
-    const fileName = buildMmsFileName({
-      messageSid,
-      index,
-      contentType: item.contentType,
-    });
-    const bytes = await downloadTwilioMedia({ media: item, credentials });
-    const fileId = await uploadToFilesField({ fileName, bytes });
+  return saveEachMediaOnce({
+    messageSid,
+    fileNames,
+    claim: (key) => kv.claim(key, true),
+    release: async (key) => {
+      await kv.delete(key);
+    },
+    save: async (index) => {
+      const fileName = fileNames[index];
+      const bytes = await downloadTwilioMedia({
+        media: media[index],
+        credentials,
+      });
+      const fileId = await uploadToFilesField({ fileName, bytes });
 
-    await new RestApiClient().post('/rest/attachments', {
-      name: fileName,
-      file: [{ fileId, label: fileName }],
-      targetPersonId: personId,
-    });
-
-    savedFileNames.push(fileName);
-  }
-
-  return savedFileNames;
+      await new RestApiClient().post('/rest/attachments', {
+        name: fileName,
+        file: [{ fileId, label: fileName }],
+        targetPersonId: personId,
+      });
+    },
+  });
 };

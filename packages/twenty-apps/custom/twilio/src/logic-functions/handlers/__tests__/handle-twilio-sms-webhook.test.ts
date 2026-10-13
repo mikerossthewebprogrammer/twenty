@@ -97,6 +97,7 @@ describe('handleTwilioSmsWebhook', () => {
     });
 
     expect(result.status).toBe(403);
+    expect(dependencies.getBinding).not.toHaveBeenCalled();
     expect(dependencies.findOrCreateContact).not.toHaveBeenCalled();
     expect(dependencies.ingest).not.toHaveBeenCalled();
   });
@@ -129,7 +130,7 @@ describe('handleTwilioSmsWebhook', () => {
     expect(dependencies.ingest).not.toHaveBeenCalled();
   });
 
-  it('ignores numbers that are not connected', async () => {
+  it('refuses numbers that are not connected, like a bad signature', async () => {
     const dependencies = buildDependencies();
 
     const result = await handleTwilioSmsWebhook({
@@ -137,7 +138,7 @@ describe('handleTwilioSmsWebhook', () => {
       dependencies,
     });
 
-    expect(result.status).toBe(404);
+    expect(result.status).toBe(403);
     expect(dependencies.getCredentials).not.toHaveBeenCalled();
   });
 

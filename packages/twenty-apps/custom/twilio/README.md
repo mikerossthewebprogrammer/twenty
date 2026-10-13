@@ -13,8 +13,8 @@ Each workspace connects its own Twilio account or sub-account. Numbers are bough
 ## Setup
 
 1. In Twenty, open **Settings → Apps → Twilio SMS → General** and choose **Add connection**.
-2. Paste the **Account SID** and **Auth Token** from the Twilio console. Leave **Share with the workspace** on for a shared business line; turn it off for a personal number (only you will read those messages).
-3. Open the **Phone numbers** tab and **Enable** the numbers that should text from Twenty. Twenty sets each number's incoming-message webhook in Twilio.
+2. Paste the **Account SID** and **Auth Token** from the Twilio console. Leave **Share with the workspace** on for a shared business line; turn it off for a personal number (only you will read those messages, and workflows cannot text from it).
+3. Open the **Phone numbers** tab and **Enable** the numbers that should text from Twenty. Twenty sets each number's incoming-message webhook in Twilio. Numbers on a shared connection can only be turned on or off by a workspace admin.
 
 Twilio must be able to reach the webhook URL shown on the **Phone numbers** tab. For a workspace on its own domain, set up the app's public functions domain so that URL is public.
 
@@ -26,7 +26,7 @@ The app runs on three Twenty core features:
 - **App message channels**: each enabled number is a message channel; incoming texts are ingested with `ingestMessages`.
 - **Sending through app channels**: `onSendMessageLogicFunction` sends replies typed in the conversation thread.
 
-Every send is idempotent: replies reuse a key until they succeed, and workflow/agent sends without a key are deduplicated for the same text to the same number within a minute. Incoming webhooks are accepted only with a valid Twilio signature for the number's account.
+Every send is idempotent. Each attempt is claimed atomically in the app's key-value store, so two requests with the same key and text never both reach Twilio. Replies reuse a key until they succeed; workflow and agent sends without a key are deduplicated for the same text to the same number within five minutes. If Twilio does not confirm a send (timeout or network error), a retry first checks Twilio's recent messages before sending again. Incoming webhooks are accepted only with a valid Twilio signature for the number's account, and redelivered picture messages are saved once.
 
 ## Development
 

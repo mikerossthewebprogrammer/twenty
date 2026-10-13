@@ -25,14 +25,17 @@ Agency-style workspaces (one per client) can text contacts through Twilio from T
 - Connection provider `twilio` (credentials: Account SID, Auth Token). Validation calls `GET /Accounts/{sid}.json`.
 - Settings page: list connections, list the account's numbers, enable/disable a number. Enabling creates the message channel (handle = E.164 number), stores a number→channel mapping, and sets the number's `SmsUrl` to the workspace webhook.
 - Inbound webhook `POST /s/twilio/sms` (public, forwards `x-twilio-signature`): validates the signature (HMAC-SHA1 over the configured URL plus sorted POST params, keyed by the owning connection's auth token), rejects unsigned/invalid requests, resolves the channel by `To`, finds or creates the Person by `From`, handles STOP/START keywords, saves MMS media to Files, ingests the message, returns empty TwiML.
-- Send (shared by the composer hook, the "Send SMS" workflow step, the AI tool and the "Send text" command): refuses opted-out recipients (fails closed if the opt-out lookup fails), dedupes by idempotency key, calls `POST /Messages.json`, maps Twilio error 21610 to an opt-out.
+- Send (shared by the composer hook, the "Send SMS" workflow step, the AI tool and the "Send text" command): refuses the text if any contact with that number, or the addressed contact, opted out (fails closed if the lookup fails), dedupes by idempotency key plus content, calls `POST /Messages.json`, maps Twilio error 21610 to an opt-out. Workflows and agents can only send from shared numbers.
 - Person field `smsOptedOut` (boolean).
 
 ## Concurrency and money
 
 Each text costs money, so sends are idempotent:
-- Composer: client-generated idempotency key; core holds a lock per (workspace, key) around the app call; the app records key→MessageSid in the workspace key-value store and returns the stored result on replay.
-- Workflow/AI: the key is derived from the caller's run context when present.
+- Composer: client-generated idempotency key; core holds a lock per (workspace, key) around the app call.
+- App: every attempt is claimed atomically (`kv.claim`, an insert that only one caller wins) under a key built from the idempotency key, numbers, text and picture paths. The record moves pending → sent or rejected. A pending attempt older than a minute is reconciled against Twilio's recent messages before a new attempt is claimed, so a timeout after Twilio accepted never sends twice.
+- Workflow/AI: an optional key; without one, the same text to the same number within five minutes is sent once.
+- If Twilio accepted the text but logging it to the conversation fails, the send reports success with a warning instead of an error that would invite a retry.
+- Inbound MMS: each picture is claimed before it is saved, so a redelivered webhook does not duplicate files.
 - Inbound: Twilio retries are deduped by `externalId = MessageSid` in ingestion (existing behavior).
 - Double-submit from the UI: the composer disables while sending and reuses the same key on retry.
 
@@ -59,4 +62,6 @@ Unit tests for every new core util/service branch and every app util (signature,
 - The side panel footer still shows the email Reply command on SMS threads; it is disabled there and does nothing.
 - Timeline entries for texts reuse Twenty's email wording ("sent or received an email").
 - Personal numbers require the rep to enter Twilio credentials themselves.
+- A send whose outcome Twilio never confirmed is retried only after a minute, once the earlier attempt has been checked against Twilio.
+- Credentials connections without a validate hook cannot tell two accounts apart, so each submission adds a connection. Twilio has a validate hook and is not affected.
 - No delivery receipts yet; a send that Twilio accepts but the carrier later drops is not surfaced.

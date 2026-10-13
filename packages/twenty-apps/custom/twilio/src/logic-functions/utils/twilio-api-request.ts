@@ -9,6 +9,9 @@ const getTwilioApiBaseUrl = (): string =>
     process.env[TWILIO_API_BASE_URL_VARIABLE_KEY] || DEFAULT_TWILIO_API_BASE_URL
   ).replace(/\/$/, '');
 
+// Leaves room inside the function timeout to record an unconfirmed send
+const TWILIO_REQUEST_TIMEOUT_MS = 15_000;
+
 export class TwilioApiError extends Error {
   constructor(
     message: string,
@@ -31,16 +34,21 @@ export const twilioApiRequest = async <TResponse>({
   method,
   path,
   form,
+  query,
 }: {
   credentials: TwilioCredentials;
   method: 'GET' | 'POST';
   path: string;
   form?: URLSearchParams;
+  query?: URLSearchParams;
 }): Promise<TResponse> => {
+  const queryString = query ? `?${query.toString()}` : '';
+
   const response = await fetch(
-    `${getTwilioApiBaseUrl()}/Accounts/${encodeURIComponent(credentials.accountSid)}${path}`,
+    `${getTwilioApiBaseUrl()}/Accounts/${encodeURIComponent(credentials.accountSid)}${path}${queryString}`,
     {
       method,
+      signal: AbortSignal.timeout(TWILIO_REQUEST_TIMEOUT_MS),
       headers: {
         Authorization: buildTwilioAuthorizationHeader(credentials),
         ...(form

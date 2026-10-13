@@ -1,6 +1,7 @@
 import { RestApiClient } from 'twenty-client-sdk/rest';
 
 import { buildPhoneLookupCandidates } from 'src/logic-functions/utils/build-phone-lookup-candidates';
+import { buildSmsOptOutFilter } from 'src/logic-functions/utils/build-sms-opt-out-filter';
 import { formatPhoneNumberForDisplay } from 'src/logic-functions/utils/format-phone-number-for-display';
 
 export type SmsContact = {
@@ -93,7 +94,27 @@ export const setSmsContactOptOut = async ({
 };
 
 // An unknown number has never opted out, since STOP from a number creates its contact
-export const readSmsOptOutStatus = async (
-  e164PhoneNumber: string,
-): Promise<boolean> =>
-  (await findSmsContactByPhone(e164PhoneNumber))?.smsOptedOut ?? false;
+export const readSmsOptOutStatus = async ({
+  phoneNumber,
+  personId,
+}: {
+  phoneNumber: string;
+  personId?: string;
+}): Promise<boolean> => {
+  const response = await new RestApiClient().get<{
+    data?: { people?: PersonNode[] };
+  }>('/rest/people', {
+    query: {
+      filter: buildSmsOptOutFilter({ phoneNumber, personId }),
+      limit: 1,
+    },
+  });
+
+  const people = response.data?.people;
+
+  if (!Array.isArray(people)) {
+    throw new Error('Unexpected response when reading opt-out status');
+  }
+
+  return people.length > 0;
+};

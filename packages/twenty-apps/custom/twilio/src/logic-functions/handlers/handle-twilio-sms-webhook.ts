@@ -36,7 +36,7 @@ export type TwilioSmsWebhookDependencies = {
 };
 
 export type TwilioSmsWebhookResult = {
-  status: 200 | 400 | 403 | 404;
+  status: 200 | 400 | 403;
   reason?: string;
 };
 
@@ -51,6 +51,12 @@ export const handleTwilioSmsWebhook = async ({
 }): Promise<TwilioSmsWebhookResult> => {
   if (rawBody === undefined) {
     return { status: 400, reason: 'Missing request body' };
+  }
+
+  // Unsigned and unknown-number requests get the same answer, so the endpoint
+  // does not reveal which numbers are connected
+  if (signature === undefined || signature.length === 0) {
+    return { status: 403, reason: 'Missing Twilio signature' };
   }
 
   const { params, message } = parseTwilioWebhookParams(rawBody);
@@ -69,7 +75,7 @@ export const handleTwilioSmsWebhook = async ({
   const binding = await dependencies.getBinding(to);
 
   if (binding === null) {
-    return { status: 404, reason: `${to} is not connected to Twenty` };
+    return { status: 403, reason: `${to} is not connected to Twenty` };
   }
 
   const credentials = await dependencies.getCredentials(

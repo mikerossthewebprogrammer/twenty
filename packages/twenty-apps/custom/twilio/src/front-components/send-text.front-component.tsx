@@ -18,7 +18,9 @@ type SmsSender = {
   label: string;
 };
 
-type SendResult = { success: true } | { success: false; error: string };
+type SendResult =
+  | { success: true; warning: string | null }
+  | { success: false; error: string };
 
 const SendText = () => {
   const [personId] = useSelectedRecordIds();
@@ -61,7 +63,11 @@ const SendText = () => {
         throw new Error(result.error);
       }
 
-      await enqueueSnackbar({ message: 'Text sent', variant: 'success' });
+      await enqueueSnackbar(
+        result.warning === null
+          ? { message: 'Text sent', variant: 'success' }
+          : { message: result.warning, variant: 'warning' },
+      );
       close();
     } catch (error) {
       await enqueueSnackbar({

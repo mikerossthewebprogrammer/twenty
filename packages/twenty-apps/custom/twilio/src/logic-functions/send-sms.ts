@@ -22,7 +22,8 @@ type SendSmsResult =
       messageSid: string;
       to: string;
       from: string;
-      personId: string;
+      personId: string | null;
+      warning: string | null;
     }
   | { success: false; message: string; error: string };
 
@@ -45,7 +46,7 @@ const sendSmsInputSchema: InputJsonSchema = {
       type: 'string',
       label: 'From number',
       description:
-        'Optional. One of your connected Twilio numbers. Leave empty to use the first connected number.',
+        'Optional. One of your shared Twilio numbers. Leave empty to use the first shared number. Personal numbers cannot be used from workflows.',
     },
     mediaUrls: {
       type: 'string',
@@ -57,7 +58,7 @@ const sendSmsInputSchema: InputJsonSchema = {
       type: 'string',
       label: 'Duplicate guard key',
       description:
-        'Optional. Texts with the same key are only sent once, for example the triggering record id. Without it, the same text to the same number within a minute is sent once.',
+        'Optional. The same text to the same number with the same key is only sent once, for example with the triggering record id as the key. Without it, the same text to the same number within five minutes is sent once.',
     },
   },
   required: ['to', 'message'],
@@ -75,11 +76,12 @@ const handler = async (input: SendSmsInput): Promise<SendSmsResult> => {
         .map((url) => url.trim())
         .filter((url) => url.length > 0),
       idempotencyKey: input.idempotencyKey?.trim() || undefined,
+      callerUserWorkspaceId: null,
     });
 
     return {
       success: true,
-      message: `Text sent to ${result.to}`,
+      message: result.warning ?? `Text sent to ${result.to}`,
       ...result,
     };
   } catch (error) {
@@ -115,6 +117,7 @@ export default defineLogicFunction({
           to: { type: 'string' },
           from: { type: 'string' },
           personId: { type: 'string' },
+          warning: { type: 'string' },
         },
       },
     ],

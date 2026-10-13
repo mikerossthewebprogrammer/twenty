@@ -12,6 +12,7 @@ import { ENABLE_TWILIO_NUMBER_LOGIC_FUNCTION_UNIVERSAL_IDENTIFIER } from 'src/co
 import { type TwilioRouteResult } from 'src/logic-functions/types/twilio-settings.type';
 import { buildTwilioWebhookUrl } from 'src/logic-functions/utils/build-twilio-webhook-url';
 import { formatPhoneNumberForDisplay } from 'src/logic-functions/utils/format-phone-number-for-display';
+import { assertCanManageTwilioConnection } from 'src/logic-functions/utils/assert-can-manage-twilio-connection';
 import { getTwilioCredentials } from 'src/logic-functions/utils/get-twilio-credentials';
 import {
   getTwilioNumberBinding,
@@ -41,7 +42,8 @@ const handler = async (
   }
 
   try {
-    // getConnection only returns connections the requesting member may use
+    await assertCanManageTwilioConnection(connectedAccountId);
+
     const connection = await getConnection(connectedAccountId);
     const credentials = getTwilioCredentials(connection);
     const phoneNumber = await getTwilioPhoneNumber({

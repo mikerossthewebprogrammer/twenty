@@ -1126,6 +1126,11 @@ export type CheckUserExist = {
   isEmailVerified: Scalars['Boolean']['output'];
 };
 
+export type ClaimAppKeyValueInput = {
+  key: Scalars['String']['input'];
+  value?: InputMaybe<Scalars['JSON']['input']>;
+};
+
 export type ClaimableApplicationRegistration = {
   __typename?: 'ClaimableApplicationRegistration';
   author?: Maybe<Scalars['String']['output']>;
@@ -3115,6 +3120,7 @@ export type Mutation = {
   checkCustomDomainValidRecords?: Maybe<DomainValidRecords>;
   checkPublicDomainValidRecords?: Maybe<DomainValidRecords>;
   checkoutSession: BillingSession;
+  claimAppKeyValue: Scalars['Boolean']['output'];
   claimApplicationRegistrationOwnership: ApplicationRegistration;
   completeAppTarballUpload: ApplicationRegistration;
   completeApplicationFileUploads: CompleteApplicationFileUploadsResult;
@@ -3441,6 +3447,11 @@ export type MutationCheckoutSessionArgs = {
   recurringInterval: SubscriptionInterval;
   requirePaymentMethod?: Scalars['Boolean']['input'];
   successUrlPath?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationClaimAppKeyValueArgs = {
+  input: ClaimAppKeyValueInput;
 };
 
 
@@ -5300,6 +5311,7 @@ export type Query = {
   barChartData: BarChartData;
   billingPortalSession: BillingSession;
   callRecordingIdForCalendarEvent?: Maybe<Scalars['UUID']['output']>;
+  canManageAppConnection: Scalars['Boolean']['output'];
   chatMessages: Array<AgentMessage>;
   chatStreamCatchupChunks: ChatStreamCatchupChunks;
   chatThread: AgentChatThread;
@@ -5492,6 +5504,11 @@ export type QueryBillingPortalSessionArgs = {
 
 export type QueryCallRecordingIdForCalendarEventArgs = {
   calendarEventId: Scalars['UUID']['input'];
+};
+
+
+export type QueryCanManageAppConnectionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 

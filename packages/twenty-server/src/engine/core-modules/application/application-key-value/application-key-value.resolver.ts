@@ -6,6 +6,7 @@ import { type AppKeyValue } from 'twenty-shared/application';
 import { MetadataResolver } from 'src/engine/api/graphql/graphql-config/decorators/metadata-resolver.decorator';
 import { ApplicationExceptionFilter } from 'src/engine/core-modules/application/application-exception-filter';
 import { AppKeyValueDto } from 'src/engine/core-modules/application/application-key-value/dtos/app-key-value.dto';
+import { ClaimAppKeyValueInput } from 'src/engine/core-modules/application/application-key-value/dtos/claim-app-key-value.input';
 import { SetAppKeyValueInput } from 'src/engine/core-modules/application/application-key-value/dtos/set-app-key-value.input';
 import { AppKeyValueScope } from 'src/engine/core-modules/application/application-key-value/enums/app-key-value-scope.enum';
 import { ApplicationKeyValueService } from 'src/engine/core-modules/application/application-key-value/services/application-key-value.service';
@@ -70,6 +71,21 @@ export class ApplicationKeyValueResolver {
       key: input.key,
       value: input.value,
       scope: input.scope ?? AppKeyValueScope.WORKSPACE,
+    });
+  }
+
+  // Atomic set-if-absent, so apps can guard side effects such as paid sends against concurrent runs
+  @Mutation(() => Boolean)
+  async claimAppKeyValue(
+    @AuthApplication() application: FlatApplication,
+    @AuthWorkspace() workspace: FlatWorkspace,
+    @Args('input') input: ClaimAppKeyValueInput,
+  ): Promise<boolean> {
+    return this.applicationKeyValueService.claim({
+      application,
+      workspaceId: workspace.id,
+      key: input.key,
+      value: input.value,
     });
   }
 

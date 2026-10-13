@@ -106,6 +106,37 @@ export class ApplicationKeyValueService {
     return { key, value, scope };
   }
 
+  async claim({
+    application,
+    workspaceId,
+    key,
+    value,
+  }: {
+    application: FlatApplication;
+    workspaceId: string;
+    key: string;
+    value: unknown;
+  }): Promise<boolean> {
+    const result = await this.keyValuePairRepository
+      .createQueryBuilder()
+      .insert()
+      .into(KeyValuePairEntity)
+      .values({
+        key,
+        value: value as KeyValuePairEntity['value'],
+        applicationId: application.id,
+        workspaceId,
+        userId: null,
+        type: KeyValuePairType.APPLICATION_VARIABLE,
+      })
+      .orIgnore()
+      .returning(['id'])
+      .execute();
+
+    // ON CONFLICT DO NOTHING returns no row when the key already exists
+    return Array.isArray(result.raw) && result.raw.length > 0;
+  }
+
   async delete({
     application,
     workspaceId,

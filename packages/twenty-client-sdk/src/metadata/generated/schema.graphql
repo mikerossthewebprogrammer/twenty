@@ -4008,6 +4008,7 @@ type Query {
   getJobs(jobIds: [String!]!): [JobStatus!]!
   appConnections(filter: ListAppConnectionsInput): [AppConnection!]!
   appConnection(id: ID!): AppConnection!
+  canManageAppConnection(id: ID!): Boolean!
   findWorkspaceAiStats: WorkspaceAiStats!
   aiChatUsage: AiChatUsage
   chatThread(id: UUID!): AgentChatThread!
@@ -4366,6 +4367,7 @@ type Mutation {
   updateMessageFolders(input: UpdateMessageFoldersInput!): [MessageFolder!]!
   updateCalendarChannel(input: UpdateCalendarChannelInput!): CalendarChannel!
   setAppKeyValue(input: SetAppKeyValueInput!): AppKeyValue!
+  claimAppKeyValue(input: ClaimAppKeyValueInput!): Boolean!
   deleteAppKeyValue(key: String!, scope: AppKeyValueScope = WORKSPACE): Boolean!
   enqueueJob(input: EnqueueJobInput!): EnqueueJobResult! @deprecated(reason: "Use enqueueJobs instead.")
   enqueueJobs(input: EnqueueJobsInput!): EnqueueJobsResult!
@@ -5649,6 +5651,11 @@ input SetAppKeyValueInput {
   key: String!
   value: JSON
   scope: AppKeyValueScope = WORKSPACE
+}
+
+input ClaimAppKeyValueInput {
+  key: String!
+  value: JSON
 }
 
 input EnqueueJobInput {

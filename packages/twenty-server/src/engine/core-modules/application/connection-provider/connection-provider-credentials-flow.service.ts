@@ -79,9 +79,13 @@ export class ConnectionProviderCredentialsFlowService {
       userWorkspaceId,
     });
 
+    // Shared connections are deduplicated across members, so concurrent
+    // submissions from different admins must serialize on the same lock
     const lockScope = isDefined(reconnectTarget)
       ? reconnectTarget.id
-      : `${visibility}:${userWorkspaceId}`;
+      : visibility === 'workspace'
+        ? 'workspace'
+        : `user:${userWorkspaceId}`;
 
     const connectedAccount = await this.cacheLockService.withLock(
       async () => {
@@ -102,6 +106,9 @@ export class ConnectionProviderCredentialsFlowService {
           provider: connectionProvider,
           credentials,
           handle,
+          // Without a validate hook the handle is the member's email, which
+          // says nothing about which provider account the values belong to
+          isHandleProviderIdentity: isDefined(validation),
           name: validation?.name ?? null,
           workspaceId,
           userWorkspaceId,
@@ -170,6 +177,7 @@ export class ConnectionProviderCredentialsFlowService {
     provider,
     credentials,
     handle,
+    isHandleProviderIdentity,
     name,
     workspaceId,
     userWorkspaceId,
@@ -179,6 +187,7 @@ export class ConnectionProviderCredentialsFlowService {
     provider: CredentialsConnectionProvider;
     credentials: Record<string, string>;
     handle: string;
+    isHandleProviderIdentity: boolean;
     name: string | null;
     workspaceId: string;
     userWorkspaceId: string;
@@ -207,15 +216,17 @@ export class ConnectionProviderCredentialsFlowService {
     // updates that connection instead of creating a duplicate
     const existing =
       reconnectTarget ??
-      (await this.connectedAccountRepository.findOne({
-        where: {
-          workspaceId,
-          connectionProviderId: provider.id,
-          handle,
-          visibility,
-          ...(visibility === 'user' ? { userWorkspaceId } : {}),
-        },
-      }));
+      (isHandleProviderIdentity
+        ? await this.connectedAccountRepository.findOne({
+            where: {
+              workspaceId,
+              connectionProviderId: provider.id,
+              handle,
+              visibility,
+              ...(visibility === 'user' ? { userWorkspaceId } : {}),
+            },
+          })
+        : null);
 
     if (isDefined(existing)) {
       await this.connectedAccountRepository.update(

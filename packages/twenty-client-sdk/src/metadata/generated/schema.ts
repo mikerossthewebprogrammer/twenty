@@ -3508,6 +3508,7 @@ export interface Query {
     getJobs: JobStatus[]
     appConnections: AppConnection[]
     appConnection: AppConnection
+    canManageAppConnection: Scalars['Boolean']
     findWorkspaceAiStats: WorkspaceAiStats
     aiChatUsage?: AiChatUsage
     chatThread: AgentChatThread
@@ -3743,6 +3744,7 @@ export interface Mutation {
     updateMessageFolders: MessageFolder[]
     updateCalendarChannel: CalendarChannel
     setAppKeyValue: AppKeyValue
+    claimAppKeyValue: Scalars['Boolean']
     deleteAppKeyValue: Scalars['Boolean']
     /** @deprecated Use enqueueJobs instead. */
     enqueueJob: EnqueueJobResult
@@ -7506,6 +7508,7 @@ export interface QueryGenqlSelection{
     getJobs?: (JobStatusGenqlSelection & { __args: {jobIds: Scalars['String'][]} })
     appConnections?: (AppConnectionGenqlSelection & { __args?: {filter?: (ListAppConnectionsInput | null)} })
     appConnection?: (AppConnectionGenqlSelection & { __args: {id: Scalars['ID']} })
+    canManageAppConnection?: { __args: {id: Scalars['ID']} }
     findWorkspaceAiStats?: WorkspaceAiStatsGenqlSelection
     aiChatUsage?: AiChatUsageGenqlSelection
     chatThread?: (AgentChatThreadGenqlSelection & { __args: {id: Scalars['UUID']} })
@@ -7780,6 +7783,7 @@ export interface MutationGenqlSelection{
     updateMessageFolders?: (MessageFolderGenqlSelection & { __args: {input: UpdateMessageFoldersInput} })
     updateCalendarChannel?: (CalendarChannelGenqlSelection & { __args: {input: UpdateCalendarChannelInput} })
     setAppKeyValue?: (AppKeyValueGenqlSelection & { __args: {input: SetAppKeyValueInput} })
+    claimAppKeyValue?: { __args: {input: ClaimAppKeyValueInput} }
     deleteAppKeyValue?: { __args: {key: Scalars['String'], scope?: (AppKeyValueScope | null)} }
     /** @deprecated Use enqueueJobs instead. */
     enqueueJob?: (EnqueueJobResultGenqlSelection & { __args: {input: EnqueueJobInput} })
@@ -8267,6 +8271,8 @@ export interface UpdateCalendarChannelInput {id: Scalars['UUID'],update: UpdateC
 export interface UpdateCalendarChannelInputUpdates {visibility?: (CalendarChannelVisibility | null),isContactAutoCreationEnabled?: (Scalars['Boolean'] | null),contactAutoCreationPolicy?: (CalendarChannelContactAutoCreationPolicy | null),isSyncEnabled?: (Scalars['Boolean'] | null)}
 
 export interface SetAppKeyValueInput {key: Scalars['String'],value?: (Scalars['JSON'] | null),scope?: (AppKeyValueScope | null)}
+
+export interface ClaimAppKeyValueInput {key: Scalars['String'],value?: (Scalars['JSON'] | null)}
 
 export interface EnqueueJobInput {logicFunctionUniversalIdentifier: Scalars['String'],payload?: (Scalars['JSON'] | null),jobId?: (Scalars['String'] | null),retryLimit?: (Scalars['Int'] | null),delayMs?: (Scalars['Int'] | null)}
 

@@ -25,6 +25,12 @@ const SET_APP_KEY_VALUE_MUTATION = `
   }
 `;
 
+const CLAIM_APP_KEY_VALUE_MUTATION = `
+  mutation ClaimAppKeyValue($input: ClaimAppKeyValueInput!) {
+    claimAppKeyValue(input: $input)
+  }
+`;
+
 const DELETE_APP_KEY_VALUE_MUTATION = `
   mutation DeleteAppKeyValue($key: String!, $scope: AppKeyValueScope) {
     deleteAppKeyValue(key: $key, scope: $scope)
@@ -75,6 +81,20 @@ export const kv = {
       },
       caller: 'kv.set',
     });
+  },
+
+  // Atomic set-if-absent on the WORKSPACE scope: exactly one concurrent caller gets true
+  async claim<TValue>(key: string, value: TValue): Promise<boolean> {
+    const { claimAppKeyValue } = await postGraphqlRequest<
+      { input: { key: string; value: TValue } },
+      { claimAppKeyValue: boolean }
+    >({
+      query: CLAIM_APP_KEY_VALUE_MUTATION,
+      variables: { input: { key, value } },
+      caller: 'kv.claim',
+    });
+
+    return claimAppKeyValue;
   },
 
   async delete(key: string, options?: KvOptions): Promise<boolean> {

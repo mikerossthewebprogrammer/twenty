@@ -1,6 +1,7 @@
 import { styled } from '@linaria/react';
 import { useLingui } from '@lingui/react/macro';
 import { isNonEmptyString } from '@sniptt/guards';
+import { useState } from 'react';
 import { SettingsPath } from 'twenty-shared/types';
 import { getSettingsPath } from 'twenty-shared/utils';
 
@@ -13,6 +14,7 @@ import { IconChevronRight, IconPlus } from 'twenty-ui/icon';
 import { Avatar, Status } from 'twenty-ui/primitives/data-display';
 import { Button } from 'twenty-ui/primitives/input';
 import { useTheme, themeCssVariables } from 'twenty-ui/theme';
+import { SettingsApplicationCredentialsConnectionForm } from '~/pages/settings/applications/components/SettingsApplicationCredentialsConnectionForm';
 import { useApplicationConnectedAccounts } from '~/pages/settings/applications/hooks/useApplicationConnectedAccounts';
 import { useFindApplicationConnectionProviders } from '~/pages/settings/applications/hooks/useFindApplicationConnectionProviders';
 import { useTriggerAppOAuth } from '~/pages/settings/applications/hooks/useTriggerAppOAuth';
@@ -42,8 +44,14 @@ export const SettingsApplicationConnectionsSection = ({
   const { triggerAppOAuth } = useTriggerAppOAuth();
   const { connectionProviders, loading } =
     useFindApplicationConnectionProviders(applicationId);
-  const { accounts: connectedAccounts, loading: accountsLoading } =
-    useApplicationConnectedAccounts(applicationId);
+  const {
+    accounts: connectedAccounts,
+    loading: accountsLoading,
+    refetch: refetchConnectedAccounts,
+  } = useApplicationConnectedAccounts(applicationId);
+  const [credentialsFormProviderId, setCredentialsFormProviderId] = useState<
+    string | null
+  >(null);
 
   if (loading || accountsLoading || connectionProviders.length === 0) {
     return null;
@@ -53,8 +61,10 @@ export const SettingsApplicationConnectionsSection = ({
     <>
       {connectionProviders.map((provider) => {
         const isOAuth = provider.type === 'oauth';
+        const isCredentials = provider.type === 'credentials';
         const isClientCredentialsConfigured =
           provider.oauth?.isClientCredentialsConfigured ?? false;
+        const isCredentialsFormOpen = credentialsFormProviderId === provider.id;
 
         const providerConnections = connectedAccounts.filter(
           (account) => account.connectionProviderId === provider.id,
@@ -156,17 +166,31 @@ export const SettingsApplicationConnectionsSection = ({
                 </StyledTableRowsContainer>
               </Table>
             )}
-            {isClientCredentialsConfigured && (
+            {isCredentialsFormOpen && (
+              <SettingsApplicationCredentialsConnectionForm
+                applicationId={applicationId}
+                provider={provider}
+                onConnected={() => {
+                  setCredentialsFormProviderId(null);
+                  refetchConnectedAccounts();
+                }}
+                onCancel={() => setCredentialsFormProviderId(null)}
+              />
+            )}
+            {(isClientCredentialsConfigured ||
+              (isCredentials && !isCredentialsFormOpen)) && (
               <StyledFooter>
                 <Button
                   startIcon={<IconPlus />}
                   size="sm"
                   onClick={() =>
-                    triggerAppOAuth({
-                      applicationId,
-                      providerName: provider.name,
-                      visibility: 'workspace',
-                    })
+                    isCredentials
+                      ? setCredentialsFormProviderId(provider.id)
+                      : triggerAppOAuth({
+                          applicationId,
+                          providerName: provider.name,
+                          visibility: 'workspace',
+                        })
                   }
                   variant="outline"
                 >{t`Add connection`}</Button>

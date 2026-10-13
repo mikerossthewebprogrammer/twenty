@@ -13,6 +13,7 @@ const GET_APP_CONNECTION_QUERY = `
       userWorkspaceId
       workspaceMemberId
       accessToken
+      credentials
       scopes
       authFailedAt
       authFailedReason

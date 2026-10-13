@@ -65,6 +65,8 @@ const findUniversalIdentifiers = (obj: object): string[] => {
       key === 'healthCheckLogicFunction' ||
       key === 'onConnectLogicFunction' ||
       key === 'onDisconnectLogicFunction' ||
+      key === 'onSendMessageLogicFunction' ||
+      key === 'onValidateCredentialsLogicFunction' ||
       key === 'settingsFrontComponent'
     ) {
       continue;

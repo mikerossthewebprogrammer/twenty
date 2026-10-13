@@ -13,6 +13,15 @@ export const FIND_APPLICATION_CONNECTION_PROVIDERS = gql`
         scopes
         isClientCredentialsConfigured
       }
+      credentials {
+        fields {
+          key
+          label
+          description
+          placeholder
+          isSecret
+        }
+      }
     }
   }
 `;

@@ -1,5 +1,6 @@
 import {
   type ConnectionProviderType,
+  type StoredCredentialsConnectionProviderConfig,
   type StoredOAuthConnectionProviderConfig,
 } from 'twenty-shared/application';
 import {
@@ -46,6 +47,27 @@ export class ConnectionProviderEntity
 
   @Column({ nullable: true, type: 'jsonb' })
   oauthConfig: StoredOAuthConnectionProviderConfig | null;
+
+  @Column({ nullable: true, type: 'jsonb' })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      '2.46.0_AddCredentialsAndSendMessageToConnectionProviderFastInstanceCommand_1791902707785',
+  })
+  credentialsConfig: StoredCredentialsConnectionProviderConfig | null;
+
+  @Column({ nullable: true, type: 'uuid' })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      '2.46.0_AddCredentialsAndSendMessageToConnectionProviderFastInstanceCommand_1791902707785',
+  })
+  onValidateCredentialsLogicFunctionUniversalIdentifier: string | null;
+
+  @Column({ nullable: true, type: 'uuid' })
+  @WasIntroducedInUpgrade({
+    upgradeCommandName:
+      '2.46.0_AddCredentialsAndSendMessageToConnectionProviderFastInstanceCommand_1791902707785',
+  })
+  onSendMessageLogicFunctionUniversalIdentifier: string | null;
 
   @Column({ nullable: true, type: 'uuid' })
   @WasIntroducedInUpgrade({

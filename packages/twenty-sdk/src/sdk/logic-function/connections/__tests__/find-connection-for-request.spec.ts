@@ -17,6 +17,7 @@ const buildConnection = (
   scopes: ['read'],
   authFailedAt: null,
   authFailedReason: null,
+  credentials: null,
   ...overrides,
 });
 

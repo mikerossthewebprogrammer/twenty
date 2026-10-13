@@ -1,5 +1,7 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql';
 
+import GraphQLJSON from 'graphql-type-json';
+
 import { type AppConnection } from 'twenty-shared/application';
 
 @ObjectType('AppConnection')
@@ -27,6 +29,9 @@ export class AppConnectionObjectDto implements AppConnection {
 
   @Field()
   accessToken: string;
+
+  @Field(() => GraphQLJSON, { nullable: true })
+  credentials: Record<string, string> | null;
 
   @Field(() => [String])
   scopes: string[];

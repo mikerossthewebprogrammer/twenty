@@ -16,6 +16,30 @@ export class ApplicationConnectionProviderOAuthConfigDTO {
   isClientCredentialsConfigured: boolean;
 }
 
+@ObjectType('ApplicationConnectionProviderCredentialsField')
+export class ApplicationConnectionProviderCredentialsFieldDTO {
+  @Field()
+  key: string;
+
+  @Field()
+  label: string;
+
+  @Field(() => String, { nullable: true })
+  description: string | null;
+
+  @Field(() => String, { nullable: true })
+  placeholder: string | null;
+
+  @Field()
+  isSecret: boolean;
+}
+
+@ObjectType('ApplicationConnectionProviderCredentialsConfig')
+export class ApplicationConnectionProviderCredentialsConfigDTO {
+  @Field(() => [ApplicationConnectionProviderCredentialsFieldDTO])
+  fields: ApplicationConnectionProviderCredentialsFieldDTO[];
+}
+
 @ObjectType('ApplicationConnectionProvider')
 export class ApplicationConnectionProviderDTO {
   @Field(() => UUIDScalarType)
@@ -39,4 +63,9 @@ export class ApplicationConnectionProviderDTO {
 
   @Field(() => ApplicationConnectionProviderOAuthConfigDTO, { nullable: true })
   oauth: ApplicationConnectionProviderOAuthConfigDTO | null;
+
+  @Field(() => ApplicationConnectionProviderCredentialsConfigDTO, {
+    nullable: true,
+  })
+  credentials: ApplicationConnectionProviderCredentialsConfigDTO | null;
 }

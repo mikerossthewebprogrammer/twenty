@@ -130,6 +130,7 @@ describe('SettingsApplicationConnectionDetail', () => {
             scopes: ['calendar.readonly'],
             isClientCredentialsConfigured: true,
           },
+          credentials: null,
         },
       ],
       loading: false,

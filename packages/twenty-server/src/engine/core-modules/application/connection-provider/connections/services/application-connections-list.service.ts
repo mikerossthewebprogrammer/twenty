@@ -11,6 +11,7 @@ import { ConnectionProviderEntity } from 'src/engine/core-modules/application/co
 import { ConnectionProviderException } from 'src/engine/core-modules/application/connection-provider/connection-provider.exception';
 import { type AppConnectionDto } from 'src/engine/core-modules/application/connection-provider/connections/dtos/app-connection.dto';
 import { isConnectionHiddenFromRequestUser } from 'src/engine/core-modules/application/connection-provider/connections/utils/is-connection-hidden-from-request-user.util';
+import { buildAppConnectionCredentials } from 'src/engine/core-modules/application/connection-provider/utils/build-app-connection-credentials.util';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 import { ConnectedAccountTokenEncryptionService } from 'src/engine/metadata-modules/connected-account/services/connected-account-token-encryption.service';
 import { InjectWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspace-scoped-repository/inject-workspace-scoped-repository.decorator';
@@ -248,9 +249,13 @@ export class ApplicationConnectionsListService {
         visibility: account.visibility as 'user' | 'workspace',
         userWorkspaceId: account.userWorkspaceId,
         workspaceMemberId,
-        accessToken: this.connectedAccountTokenEncryptionService.decrypt({
-          ciphertext: encryptedTokens.accessToken,
-          workspaceId,
+        ...buildAppConnectionCredentials({
+          providerType: provider.type,
+          decryptedAccessToken:
+            this.connectedAccountTokenEncryptionService.decrypt({
+              ciphertext: encryptedTokens.accessToken,
+              workspaceId,
+            }),
         }),
         scopes: account.scopes ?? provider.oauthConfig?.scopes ?? [],
         authFailedAt: account.authFailedAt?.toISOString() ?? null,

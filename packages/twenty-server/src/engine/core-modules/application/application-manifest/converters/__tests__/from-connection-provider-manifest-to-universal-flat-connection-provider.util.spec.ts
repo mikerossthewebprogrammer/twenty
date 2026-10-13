@@ -51,8 +51,11 @@ describe('fromConnectionProviderManifestToUniversalFlatConnectionProvider', () =
         tokenRequestContentType: 'json',
         usePkce: true,
       },
+      credentialsConfig: null,
       onConnectLogicFunctionUniversalIdentifier: null,
       onDisconnectLogicFunctionUniversalIdentifier: null,
+      onSendMessageLogicFunctionUniversalIdentifier: null,
+      onValidateCredentialsLogicFunctionUniversalIdentifier: null,
       createdAt: NOW,
       updatedAt: NOW,
     });
@@ -149,5 +152,80 @@ describe('fromConnectionProviderManifestToUniversalFlatConnectionProvider', () =
 
     expect(result.oauthConfig?.tokenRequestContentType).toBe('json');
     expect(result.oauthConfig?.usePkce).toBe(true);
+  });
+  it('resolves the onSendMessageLogicFunction universalIdentifier into the flat field when provided', () => {
+    const onSendMessageLogicFunctionUniversalIdentifier =
+      'e3e3e3e3-e3e3-4e3e-e3e3-e3e3e3e3e3e3';
+
+    const result =
+      fromConnectionProviderManifestToUniversalFlatConnectionProvider({
+        connectionProviderManifest: buildManifest({
+          onSendMessageLogicFunction: {
+            universalIdentifier: onSendMessageLogicFunctionUniversalIdentifier,
+          },
+        }),
+        applicationUniversalIdentifier: APP_UID,
+        now: NOW,
+      });
+
+    expect(result.onSendMessageLogicFunctionUniversalIdentifier).toBe(
+      onSendMessageLogicFunctionUniversalIdentifier,
+    );
+  });
+
+  it('moves credentials manifest fields into the resolved credentialsConfig blob with defaults filled', () => {
+    const onValidateCredentialsLogicFunctionUniversalIdentifier =
+      'f4f4f4f4-f4f4-4f4f-f4f4-f4f4f4f4f4f4';
+
+    const result =
+      fromConnectionProviderManifestToUniversalFlatConnectionProvider({
+        connectionProviderManifest: {
+          universalIdentifier: PROVIDER_UID,
+          name: 'twilio',
+          displayName: 'Twilio',
+          type: 'credentials',
+          credentials: {
+            fields: [
+              { key: 'accountSid', label: 'Account SID', placeholder: 'AC…' },
+              {
+                key: 'authToken',
+                label: 'Auth Token',
+                description: 'From the Twilio console',
+                isSecret: true,
+              },
+            ],
+          },
+          onValidateCredentialsLogicFunction: {
+            universalIdentifier:
+              onValidateCredentialsLogicFunctionUniversalIdentifier,
+          },
+        },
+        applicationUniversalIdentifier: APP_UID,
+        now: NOW,
+      });
+
+    expect(result.type).toBe('credentials');
+    expect(result.oauthConfig).toBeNull();
+    expect(result.credentialsConfig).toEqual({
+      fields: [
+        {
+          key: 'accountSid',
+          label: 'Account SID',
+          description: null,
+          placeholder: 'AC…',
+          isSecret: false,
+        },
+        {
+          key: 'authToken',
+          label: 'Auth Token',
+          description: 'From the Twilio console',
+          placeholder: null,
+          isSecret: true,
+        },
+      ],
+    });
+    expect(result.onValidateCredentialsLogicFunctionUniversalIdentifier).toBe(
+      onValidateCredentialsLogicFunctionUniversalIdentifier,
+    );
   });
 });

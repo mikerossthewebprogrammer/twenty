@@ -2,15 +2,19 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { CacheLockModule } from 'src/engine/core-modules/cache-lock/cache-lock.module';
+import { ConnectionProviderModule } from 'src/engine/core-modules/application/connection-provider/connection-provider.module';
 import { EmailingDomainModule } from 'src/engine/core-modules/emailing-domain/emailing-domain.module';
+import { FileUrlModule } from 'src/engine/core-modules/file/file-url/file-url.module';
 import { ConnectedAccountMetadataModule } from 'src/engine/metadata-modules/connected-account/connected-account-metadata.module';
 import { ConnectedAccountEntity } from 'src/engine/metadata-modules/connected-account/entities/connected-account.entity';
 import { MessageChannelEntity } from 'src/engine/metadata-modules/message-channel/entities/message-channel.entity';
 import { MessageChannelGraphqlApiExceptionInterceptor } from 'src/engine/metadata-modules/message-channel/interceptors/message-channel-graphql-api-exception.interceptor';
 import { MessageChannelMetadataService } from 'src/engine/metadata-modules/message-channel/message-channel-metadata.service';
+import { AppChannelMessageSendResolver } from 'src/engine/metadata-modules/message-channel/resolvers/app-channel-message-send.resolver';
 import { ApplicationMessageChannelsResolver } from 'src/engine/metadata-modules/message-channel/resolvers/application-message-channels.resolver';
 import { ApplicationMessageIngestionResolver } from 'src/engine/metadata-modules/message-channel/resolvers/application-message-ingestion.resolver';
 import { MessageChannelResolver } from 'src/engine/metadata-modules/message-channel/resolvers/message-channel.resolver';
+import { AppChannelMessageSendService } from 'src/engine/metadata-modules/message-channel/services/app-channel-message-send.service';
 import { ApplicationMessageChannelsService } from 'src/engine/metadata-modules/message-channel/services/application-message-channels.service';
 import { ApplicationMessageIngestionService } from 'src/engine/metadata-modules/message-channel/services/application-message-ingestion.service';
 import { MessageFolderEntity } from 'src/engine/metadata-modules/message-folder/entities/message-folder.entity';
@@ -27,6 +31,8 @@ import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspac
       ConnectedAccountEntity,
     ]),
     CacheLockModule,
+    ConnectionProviderModule,
+    FileUrlModule,
     PermissionsModule,
     ConnectedAccountMetadataModule,
     MessagingImportManagerModule,
@@ -40,6 +46,8 @@ import { provideWorkspaceScopedRepository } from 'src/engine/twenty-orm/workspac
     ApplicationMessageChannelsResolver,
     ApplicationMessageIngestionService,
     ApplicationMessageIngestionResolver,
+    AppChannelMessageSendService,
+    AppChannelMessageSendResolver,
     MessageChannelGraphqlApiExceptionInterceptor,
     provideWorkspaceScopedRepository(MessageFolderEntity),
   ],

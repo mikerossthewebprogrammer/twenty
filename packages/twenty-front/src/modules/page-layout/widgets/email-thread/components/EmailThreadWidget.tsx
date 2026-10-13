@@ -8,9 +8,11 @@ import { useEmailThread } from '@/activities/emails/hooks/useEmailThread';
 import { useReplyContext } from '@/activities/emails/hooks/useReplyContext';
 import { type EmailDraftPrefill } from '@/activities/emails/types/EmailDraftPrefill';
 import { type EmailThreadMessageWithSender } from '@/activities/emails/types/EmailThreadMessageWithSender';
+import { getAppChannelReplyRecipients } from '@/activities/emails/utils/getAppChannelReplyRecipients';
 import { getEmailDraftPrefillFromMessage } from '@/activities/emails/utils/getEmailDraftPrefillFromMessage';
 import { type PageLayoutWidget } from '@/page-layout/types/PageLayoutWidget';
 import { WidgetRelationsHeader } from '@/page-layout/widgets/components/WidgetRelationsHeader';
+import { AppChannelThreadComposer } from '@/page-layout/widgets/email-thread/components/AppChannelThreadComposer';
 import { EmailThreadComposer } from '@/page-layout/widgets/email-thread/components/EmailThreadComposer';
 import { EmailThreadIntermediaryMessages } from '@/page-layout/widgets/email-thread/components/EmailThreadIntermediaryMessages';
 import { AnimatedPlaceholder } from '@/ui/feedback/empty-state/components/AnimatedPlaceholder/AnimatedPlaceholder';
@@ -22,6 +24,7 @@ import { useTargetRecord } from '@/ui/layout/contexts/useTargetRecord';
 import { useWorkspaceSurface } from '@/ui/layout/hooks/useWorkspaceSurface';
 import { t } from '@lingui/core/macro';
 import { isDefined } from 'twenty-shared/utils';
+import { MessageChannelType } from '~/generated-metadata/graphql';
 
 type EmailThreadWidgetProps = {
   widget: PageLayoutWidget;
@@ -33,9 +36,17 @@ export const EmailThreadWidget = ({
   const targetRecord = useTargetRecord();
   const isInSidePanel = useWorkspaceSurface().type === 'side-panel';
 
-  const { thread, messages, fetchMoreMessages, threadLoading } = useEmailThread(
-    targetRecord.id,
-  );
+  const {
+    thread,
+    messages,
+    fetchMoreMessages,
+    threadLoading,
+    messageChannelId,
+    messageChannelType,
+    messageChannelHandle,
+    messageThreadExternalId,
+    refetchMessages,
+  } = useEmailThread(targetRecord.id);
 
   const replyContext = useReplyContext(targetRecord.id);
 
@@ -70,6 +81,7 @@ export const EmailThreadWidget = ({
     [],
   );
 
+  const isAppChannelThread = messageChannelType === MessageChannelType.APP;
   const canReply = isDefined(replyContext) && !replyContext.loading;
 
   const messagesCount = messages.length;
@@ -150,6 +162,20 @@ export const EmailThreadWidget = ({
           onLastRowVisible={fetchMoreMessages}
         />
       </StyledWidgetScrollContainer>
+      {isAppChannelThread &&
+        isDefined(messageChannelId) &&
+        isDefined(messageChannelHandle) && (
+          <AppChannelThreadComposer
+            key={targetRecord.id}
+            messageChannelId={messageChannelId}
+            threadExternalId={messageThreadExternalId}
+            recipients={getAppChannelReplyRecipients({
+              message: lastMessage,
+              channelHandle: messageChannelHandle,
+            })}
+            onSent={() => refetchMessages()}
+          />
+        )}
       {canReply && (
         <EmailThreadComposer
           key={draftPrefill?.messageId ?? 'reply'}

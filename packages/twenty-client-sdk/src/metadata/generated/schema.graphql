@@ -1583,6 +1583,18 @@ type ApplicationConnectionProviderOAuthConfig {
   isClientCredentialsConfigured: Boolean!
 }
 
+type ApplicationConnectionProviderCredentialsField {
+  key: String!
+  label: String!
+  description: String
+  placeholder: String
+  isSecret: Boolean!
+}
+
+type ApplicationConnectionProviderCredentialsConfig {
+  fields: [ApplicationConnectionProviderCredentialsField!]!
+}
+
 type ApplicationConnectionProvider {
   id: UUID!
   applicationId: String!
@@ -1590,6 +1602,7 @@ type ApplicationConnectionProvider {
   name: String!
   displayName: String!
   oauth: ApplicationConnectionProviderOAuthConfig
+  credentials: ApplicationConnectionProviderCredentialsConfig
   logoUrl: String
 }
 
@@ -1615,6 +1628,10 @@ enum LogicFunctionExecutionStatus {
   IDLE
   SUCCESS
   ERROR
+}
+
+type CreateAppCredentialsConnectionOutput {
+  connectedAccountId: UUID!
 }
 
 type EnterpriseLicenseInfoDTO {
@@ -2412,6 +2429,7 @@ type AppConnection {
   userWorkspaceId: String!
   workspaceMemberId: String
   accessToken: String!
+  credentials: JSON
   scopes: [String!]!
   authFailedAt: String
   authFailedReason: String
@@ -3107,6 +3125,11 @@ enum UnsubscribeHostnameStatus {
   PENDING
   ACTIVE
   FAILED
+}
+
+type SendAppChannelMessageOutput {
+  messageId: UUID!
+  messageThreadId: UUID!
 }
 
 type MessageChannel {
@@ -4243,6 +4266,7 @@ type Mutation {
   completeBookCallOnboardingStep(hasBookedCall: Boolean! = false, isAutoSkipped: Boolean! = false): OnboardingStepSuccess!
   triggerInstallAppsOnboardingStep(universalIdentifiers: [String!]!, isAutoSkipped: Boolean! = false): OnboardingStepSuccess!
   goBackToPreviousOnboardingStep: OnboardingStepNavigation!
+  createAppCredentialsConnection(input: CreateAppCredentialsConnectionInput!): CreateAppCredentialsConnectionOutput!
   checkoutSession(recurringInterval: SubscriptionInterval!, plan: BillingPlanKey! = PRO, requirePaymentMethod: Boolean! = true, successUrlPath: String): BillingSession!
   createSubscriptionPaymentIntent(recurringInterval: SubscriptionInterval!, plan: BillingPlanKey! = PRO, requirePaymentMethod: Boolean! = true, successUrlPath: String, idempotencyKey: String!): BillingPaymentIntent!
   createBillingPaymentMethodSetupIntent: BillingPaymentIntent!
@@ -4330,6 +4354,7 @@ type Mutation {
   updateAppMessageChannel(input: UpdateAppMessageChannelInput!): MessageChannel!
   deleteAppMessageChannel(id: UUID!): MessageChannel!
   ingestAppMessages(input: IngestAppMessagesInput!): IngestAppMessagesOutput!
+  sendAppChannelMessage(input: SendAppChannelMessageInput!): SendAppChannelMessageOutput!
   createEmailingDomain(input: CreateEmailingDomainInput!): EmailingDomain!
   deleteEmailingDomain(id: String!): Boolean!
   verifyEmailingDomain(id: String!): EmailingDomain!
@@ -5089,6 +5114,14 @@ input UpdateFrontComponentInputUpdates {
   description: String
 }
 
+input CreateAppCredentialsConnectionInput {
+  applicationId: UUID!
+  providerName: String!
+  visibility: String!
+  values: JSON!
+  reconnectingConnectedAccountId: UUID
+}
+
 input CreateApprovedAccessDomainInput {
   domain: String!
   email: String!
@@ -5520,6 +5553,20 @@ enum MessageParticipantRole {
   CC
   BCC
   REPLY_TO
+}
+
+input SendAppChannelMessageInput {
+  messageChannelId: UUID!
+  threadExternalId: String
+  recipients: [AppChannelMessageRecipientInput!]!
+  text: String!
+  fileIds: [UUID!]
+  idempotencyKey: String!
+}
+
+input AppChannelMessageRecipientInput {
+  handle: String!
+  personId: UUID
 }
 
 input CreateEmailingDomainInput {

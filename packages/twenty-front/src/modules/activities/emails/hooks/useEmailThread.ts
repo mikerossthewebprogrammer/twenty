@@ -45,6 +45,7 @@ export const useEmailThread = (threadId: string | null) => {
     loading: messagesLoading,
     fetchMoreRecords,
     hasNextPage,
+    refetch: refetchMessages,
   } = useFindManyRecords<EmailThreadMessage>({
     limit: FETCH_ALL_MESSAGES_OPERATION_SIGNATURE.variables.limit,
     filter: FETCH_ALL_MESSAGES_OPERATION_SIGNATURE.variables.filter,
@@ -134,6 +135,8 @@ export const useEmailThread = (threadId: string | null) => {
     connectedAccountId,
     connectedAccountHandle,
     connectedAccountProvider,
+    messageChannelType,
+    messageChannelHandle,
     loading: replyConnectedAccountLoading,
   } = useReplyConnectedAccount(lastMessageChannelId);
 
@@ -160,9 +163,13 @@ export const useEmailThread = (threadId: string | null) => {
     connectedAccountId,
     connectedAccountHandle,
     connectedAccountProvider,
+    messageChannelId: lastMessageChannelId,
+    messageChannelType,
+    messageChannelHandle,
     threadLoading: threadRecordLoading || messagesLoading,
     messageChannelLoading,
     lastMessageExternalId,
     fetchMoreMessages,
+    refetchMessages,
   };
 };

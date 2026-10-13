@@ -7,6 +7,7 @@ import {
 } from '@/activities/emails/types/ReplyContext';
 import { getReplyToRecipients } from '@/activities/emails/utils/getReplyToRecipients';
 import { isDefined } from 'twenty-shared/utils';
+import { MessageChannelType } from '~/generated-metadata/graphql';
 
 export type { ReplyContext, ReplyContextReady };
 
@@ -18,11 +19,17 @@ export const useReplyContext = (
     connectedAccountId,
     connectedAccountHandle,
     connectedAccountProvider,
+    messageChannelType,
     messageChannelLoading,
     threadLoading,
   } = useEmailThread(threadId);
 
   return useMemo(() => {
+    // App channels (SMS, chat) reply through their own composer, not as email
+    if (messageChannelType === MessageChannelType.APP) {
+      return null;
+    }
+
     if (
       !isDefined(connectedAccountId) ||
       !isDefined(connectedAccountProvider)
@@ -75,6 +82,7 @@ export const useReplyContext = (
     connectedAccountId,
     connectedAccountHandle,
     connectedAccountProvider,
+    messageChannelType,
     messageChannelLoading,
     threadLoading,
   ]);

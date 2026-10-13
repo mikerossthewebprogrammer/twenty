@@ -1220,6 +1220,20 @@ export interface ApplicationConnectionProviderOAuthConfig {
     __typename: 'ApplicationConnectionProviderOAuthConfig'
 }
 
+export interface ApplicationConnectionProviderCredentialsField {
+    key: Scalars['String']
+    label: Scalars['String']
+    description?: Scalars['String']
+    placeholder?: Scalars['String']
+    isSecret: Scalars['Boolean']
+    __typename: 'ApplicationConnectionProviderCredentialsField'
+}
+
+export interface ApplicationConnectionProviderCredentialsConfig {
+    fields: ApplicationConnectionProviderCredentialsField[]
+    __typename: 'ApplicationConnectionProviderCredentialsConfig'
+}
+
 export interface ApplicationConnectionProvider {
     id: Scalars['UUID']
     applicationId: Scalars['String']
@@ -1227,6 +1241,7 @@ export interface ApplicationConnectionProvider {
     name: Scalars['String']
     displayName: Scalars['String']
     oauth?: ApplicationConnectionProviderOAuthConfig
+    credentials?: ApplicationConnectionProviderCredentialsConfig
     logoUrl?: Scalars['String']
     __typename: 'ApplicationConnectionProvider'
 }
@@ -1248,6 +1263,11 @@ export interface LogicFunctionExecutionResult {
 
 /** Status of the logic function execution */
 export type LogicFunctionExecutionStatus = 'IDLE' | 'SUCCESS' | 'ERROR'
+
+export interface CreateAppCredentialsConnectionOutput {
+    connectedAccountId: Scalars['UUID']
+    __typename: 'CreateAppCredentialsConnectionOutput'
+}
 
 export interface EnterpriseLicenseInfoDTO {
     isValid: Scalars['Boolean']
@@ -1991,6 +2011,7 @@ export interface AppConnection {
     userWorkspaceId: Scalars['String']
     workspaceMemberId?: Scalars['String']
     accessToken: Scalars['String']
+    credentials?: Scalars['JSON']
     scopes: Scalars['String'][]
     authFailedAt?: Scalars['String']
     authFailedReason?: Scalars['String']
@@ -2673,6 +2694,12 @@ export type EmailingDomainStatus = 'PENDING' | 'VERIFIED' | 'FAILED' | 'TEMPORAR
 export type EmailingDomainTenantStatus = 'ACTIVE' | 'PAUSED' | 'SANDBOX'
 
 export type UnsubscribeHostnameStatus = 'PENDING' | 'ACTIVE' | 'FAILED'
+
+export interface SendAppChannelMessageOutput {
+    messageId: Scalars['UUID']
+    messageThreadId: Scalars['UUID']
+    __typename: 'SendAppChannelMessageOutput'
+}
 
 export interface MessageChannel {
     id: Scalars['UUID']
@@ -3614,6 +3641,7 @@ export interface Mutation {
     completeBookCallOnboardingStep: OnboardingStepSuccess
     triggerInstallAppsOnboardingStep: OnboardingStepSuccess
     goBackToPreviousOnboardingStep: OnboardingStepNavigation
+    createAppCredentialsConnection: CreateAppCredentialsConnectionOutput
     checkoutSession: BillingSession
     createSubscriptionPaymentIntent: BillingPaymentIntent
     createBillingPaymentMethodSetupIntent: BillingPaymentIntent
@@ -3703,6 +3731,7 @@ export interface Mutation {
     updateAppMessageChannel: MessageChannel
     deleteAppMessageChannel: MessageChannel
     ingestAppMessages: IngestAppMessagesOutput
+    sendAppChannelMessage: SendAppChannelMessageOutput
     createEmailingDomain: EmailingDomain
     deleteEmailingDomain: Scalars['Boolean']
     verifyEmailingDomain: EmailingDomain
@@ -5068,6 +5097,22 @@ export interface ApplicationConnectionProviderOAuthConfigGenqlSelection{
     __scalar?: boolean | number
 }
 
+export interface ApplicationConnectionProviderCredentialsFieldGenqlSelection{
+    key?: boolean | number
+    label?: boolean | number
+    description?: boolean | number
+    placeholder?: boolean | number
+    isSecret?: boolean | number
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
+export interface ApplicationConnectionProviderCredentialsConfigGenqlSelection{
+    fields?: ApplicationConnectionProviderCredentialsFieldGenqlSelection
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
 export interface ApplicationConnectionProviderGenqlSelection{
     id?: boolean | number
     applicationId?: boolean | number
@@ -5075,6 +5120,7 @@ export interface ApplicationConnectionProviderGenqlSelection{
     name?: boolean | number
     displayName?: boolean | number
     oauth?: ApplicationConnectionProviderOAuthConfigGenqlSelection
+    credentials?: ApplicationConnectionProviderCredentialsConfigGenqlSelection
     logoUrl?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
@@ -5091,6 +5137,12 @@ export interface LogicFunctionExecutionResultGenqlSelection{
     status?: boolean | number
     /** Execution error in JSON format */
     error?: boolean | number
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
+export interface CreateAppCredentialsConnectionOutputGenqlSelection{
+    connectedAccountId?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
@@ -5866,6 +5918,7 @@ export interface AppConnectionGenqlSelection{
     userWorkspaceId?: boolean | number
     workspaceMemberId?: boolean | number
     accessToken?: boolean | number
+    credentials?: boolean | number
     scopes?: boolean | number
     authFailedAt?: boolean | number
     authFailedReason?: boolean | number
@@ -6595,6 +6648,13 @@ export interface EmailingDomainGenqlSelection{
     unsubscribeHostnameStatus?: boolean | number
     verificationRecords?: VerificationRecordGenqlSelection
     verifiedAt?: boolean | number
+    __typename?: boolean | number
+    __scalar?: boolean | number
+}
+
+export interface SendAppChannelMessageOutputGenqlSelection{
+    messageId?: boolean | number
+    messageThreadId?: boolean | number
     __typename?: boolean | number
     __scalar?: boolean | number
 }
@@ -7618,6 +7678,7 @@ export interface MutationGenqlSelection{
     completeBookCallOnboardingStep?: (OnboardingStepSuccessGenqlSelection & { __args: {hasBookedCall: Scalars['Boolean'], isAutoSkipped: Scalars['Boolean']} })
     triggerInstallAppsOnboardingStep?: (OnboardingStepSuccessGenqlSelection & { __args: {universalIdentifiers: Scalars['String'][], isAutoSkipped: Scalars['Boolean']} })
     goBackToPreviousOnboardingStep?: OnboardingStepNavigationGenqlSelection
+    createAppCredentialsConnection?: (CreateAppCredentialsConnectionOutputGenqlSelection & { __args: {input: CreateAppCredentialsConnectionInput} })
     checkoutSession?: (BillingSessionGenqlSelection & { __args: {recurringInterval: SubscriptionInterval, plan: BillingPlanKey, requirePaymentMethod: Scalars['Boolean'], successUrlPath?: (Scalars['String'] | null)} })
     createSubscriptionPaymentIntent?: (BillingPaymentIntentGenqlSelection & { __args: {recurringInterval: SubscriptionInterval, plan: BillingPlanKey, requirePaymentMethod: Scalars['Boolean'], successUrlPath?: (Scalars['String'] | null), idempotencyKey: Scalars['String']} })
     createBillingPaymentMethodSetupIntent?: BillingPaymentIntentGenqlSelection
@@ -7707,6 +7768,7 @@ export interface MutationGenqlSelection{
     updateAppMessageChannel?: (MessageChannelGenqlSelection & { __args: {input: UpdateAppMessageChannelInput} })
     deleteAppMessageChannel?: (MessageChannelGenqlSelection & { __args: {id: Scalars['UUID']} })
     ingestAppMessages?: (IngestAppMessagesOutputGenqlSelection & { __args: {input: IngestAppMessagesInput} })
+    sendAppChannelMessage?: (SendAppChannelMessageOutputGenqlSelection & { __args: {input: SendAppChannelMessageInput} })
     createEmailingDomain?: (EmailingDomainGenqlSelection & { __args: {input: CreateEmailingDomainInput} })
     deleteEmailingDomain?: { __args: {id: Scalars['String']} }
     verifyEmailingDomain?: (EmailingDomainGenqlSelection & { __args: {id: Scalars['String']} })
@@ -8038,6 +8100,8 @@ update: UpdateFrontComponentInputUpdates}
 
 export interface UpdateFrontComponentInputUpdates {name?: (Scalars['String'] | null),description?: (Scalars['String'] | null)}
 
+export interface CreateAppCredentialsConnectionInput {applicationId: Scalars['UUID'],providerName: Scalars['String'],visibility: Scalars['String'],values: Scalars['JSON'],reconnectingConnectedAccountId?: (Scalars['UUID'] | null)}
+
 export interface CreateApprovedAccessDomainInput {domain: Scalars['String'],email: Scalars['String']}
 
 export interface DeleteApprovedAccessDomainInput {id: Scalars['UUID']}
@@ -8169,6 +8233,10 @@ export interface IngestAppMessagesInput {messageChannelId: Scalars['UUID'],messa
 export interface AppMessageInput {externalId: Scalars['String'],threadExternalId: Scalars['String'],subject?: (Scalars['String'] | null),text: Scalars['String'],receivedAt: Scalars['DateTime'],participants: AppMessageParticipantInput[]}
 
 export interface AppMessageParticipantInput {role: MessageParticipantRole,handle: Scalars['String'],displayName?: (Scalars['String'] | null),personId?: (Scalars['UUID'] | null),workspaceMemberId?: (Scalars['UUID'] | null)}
+
+export interface SendAppChannelMessageInput {messageChannelId: Scalars['UUID'],threadExternalId?: (Scalars['String'] | null),recipients: AppChannelMessageRecipientInput[],text: Scalars['String'],fileIds?: (Scalars['UUID'][] | null),idempotencyKey: Scalars['String']}
+
+export interface AppChannelMessageRecipientInput {handle: Scalars['String'],personId?: (Scalars['UUID'] | null)}
 
 export interface CreateEmailingDomainInput {domain: Scalars['String']}
 
@@ -8995,6 +9063,22 @@ export interface CreateRecordExportInput {objectMetadataId: Scalars['UUID'],fiel
     
 
 
+    const ApplicationConnectionProviderCredentialsField_possibleTypes: string[] = ['ApplicationConnectionProviderCredentialsField']
+    export const isApplicationConnectionProviderCredentialsField = (obj?: { __typename?: any } | null): obj is ApplicationConnectionProviderCredentialsField => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isApplicationConnectionProviderCredentialsField"')
+      return ApplicationConnectionProviderCredentialsField_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
+    const ApplicationConnectionProviderCredentialsConfig_possibleTypes: string[] = ['ApplicationConnectionProviderCredentialsConfig']
+    export const isApplicationConnectionProviderCredentialsConfig = (obj?: { __typename?: any } | null): obj is ApplicationConnectionProviderCredentialsConfig => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isApplicationConnectionProviderCredentialsConfig"')
+      return ApplicationConnectionProviderCredentialsConfig_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
     const ApplicationConnectionProvider_possibleTypes: string[] = ['ApplicationConnectionProvider']
     export const isApplicationConnectionProvider = (obj?: { __typename?: any } | null): obj is ApplicationConnectionProvider => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isApplicationConnectionProvider"')
@@ -9007,6 +9091,14 @@ export interface CreateRecordExportInput {objectMetadataId: Scalars['UUID'],fiel
     export const isLogicFunctionExecutionResult = (obj?: { __typename?: any } | null): obj is LogicFunctionExecutionResult => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isLogicFunctionExecutionResult"')
       return LogicFunctionExecutionResult_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
+    const CreateAppCredentialsConnectionOutput_possibleTypes: string[] = ['CreateAppCredentialsConnectionOutput']
+    export const isCreateAppCredentialsConnectionOutput = (obj?: { __typename?: any } | null): obj is CreateAppCredentialsConnectionOutput => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isCreateAppCredentialsConnectionOutput"')
+      return CreateAppCredentialsConnectionOutput_possibleTypes.includes(obj.__typename)
     }
     
 
@@ -10215,6 +10307,14 @@ export interface CreateRecordExportInput {objectMetadataId: Scalars['UUID'],fiel
     export const isEmailingDomain = (obj?: { __typename?: any } | null): obj is EmailingDomain => {
       if (!obj?.__typename) throw new Error('__typename is missing in "isEmailingDomain"')
       return EmailingDomain_possibleTypes.includes(obj.__typename)
+    }
+    
+
+
+    const SendAppChannelMessageOutput_possibleTypes: string[] = ['SendAppChannelMessageOutput']
+    export const isSendAppChannelMessageOutput = (obj?: { __typename?: any } | null): obj is SendAppChannelMessageOutput => {
+      if (!obj?.__typename) throw new Error('__typename is missing in "isSendAppChannelMessageOutput"')
+      return SendAppChannelMessageOutput_possibleTypes.includes(obj.__typename)
     }
     
 

@@ -1,0 +1,23 @@
+{
+  "name": "twenty-twilio",
+  "version": "0.1.0",
+  "description": "Two-way SMS and MMS for Twenty through Twilio",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": "^24.5.0",
+    "npm": "please-use-yarn",
+    "yarn": ">=4.0.2"
+  },
+  "keywords": [
+    "twenty-app"
+  ],
+  "packageManager": "yarn@4.13.0",
+  "scripts": {
+    "twenty": "node ../../../twenty-sdk/dist/cli.cjs",
+    "lint": "oxlint -c .oxlintrc.json .",
+    "lint:fix": "oxlint --fix -c .oxlintrc.json .",
+    "typecheck": "tsgo --noEmit -p tsconfig.spec.json",
+    "test:unit": "vitest run --config vitest.unit.config.ts"
+  }
+}

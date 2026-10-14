@@ -37,6 +37,16 @@ const getConnectionProviderExceptionUserFriendlyMessage = (
       return msg`The logic function to run on disconnect was not found.`;
     case ConnectionProviderExceptionCode.ON_DISCONNECT_LOGIC_FUNCTION_FAILED:
       return msg`The logic function to run on disconnect failed.`;
+    case ConnectionProviderExceptionCode.INVALID_CREDENTIALS:
+      return msg`These credentials are invalid.`;
+    case ConnectionProviderExceptionCode.ON_VALIDATE_CREDENTIALS_LOGIC_FUNCTION_NOT_FOUND:
+      return msg`The logic function that validates credentials was not found.`;
+    case ConnectionProviderExceptionCode.ON_VALIDATE_CREDENTIALS_LOGIC_FUNCTION_FAILED:
+      return msg`The logic function that validates credentials failed.`;
+    case ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_NOT_FOUND:
+      return msg`This channel does not support sending messages.`;
+    case ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_FAILED:
+      return msg`The message could not be sent.`;
     default:
       assertUnreachable(code);
   }

@@ -73,6 +73,10 @@ export class ApplicationConnectionProviderResolver {
                 credentialsConfiguredByProviderId.get(provider.id) ?? false,
             }
           : null,
+      credentials:
+        provider.type === 'credentials' && provider.credentialsConfig
+          ? { fields: provider.credentialsConfig.fields }
+          : null,
     }));
   }
 

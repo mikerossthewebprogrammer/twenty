@@ -64,7 +64,11 @@ export type {
   BillableOperationManifest,
   BillableOperations,
 } from './billableOperationsType';
-export type { ConnectionProviderManifest } from './connectionProviderManifestType';
+export type {
+  OAuthConnectionProviderManifest,
+  CredentialsConnectionProviderManifest,
+  ConnectionProviderManifest,
+} from './connectionProviderManifestType';
 export type { ConnectionProviderType } from './connectionProviderType';
 export { APPLICATION_FILE_UPLOAD_BATCH_SIZE } from './constants/ApplicationFileUploadBatchSize';
 export { APPLICATION_WORKFLOW_UNAVAILABLE_STEP_TYPES } from './constants/ApplicationWorkflowUnavailableStepTypes';
@@ -83,6 +87,10 @@ export { NODE_ESM_CJS_BANNER } from './constants/NodeEsmCjsBanner';
 export { OUTPUT_DIR } from './constants/OutputDirectory';
 export { TWENTY_STANDARD_APPLICATION_NAME } from './constants/TwentyStandardApplicationName';
 export { TWENTY_STANDARD_APPLICATION_UNIVERSAL_IDENTIFIER } from './constants/TwentyStandardApplicationUniversalIdentifier';
+export type {
+  CredentialsConnectionProviderField,
+  CredentialsConnectionProviderConfig,
+} from './credentialsConnectionProviderConfigType';
 export type {
   CreditUnavailableReason,
   CreditAvailability,
@@ -207,6 +215,10 @@ export type {
   RunAgentInput,
   RunAgentResult,
 } from './runAgentType';
+export type {
+  SendAppChannelMessagePayload,
+  SendAppChannelMessageResult,
+} from './sendAppChannelMessagePayloadType';
 export type { SendInboxMessageInput } from './sendInboxMessageInputType';
 export type { SendInboxMessageResult } from './sendInboxMessageResultType';
 export type { SendInboxMessageToolCall } from './sendInboxMessageToolCallType';
@@ -224,6 +236,10 @@ export {
   DEFAULT_SETTINGS_MENU_ITEM_SCOPE,
 } from './settingsMenuItemManifestType';
 export type { SkillManifest } from './skillManifestType';
+export type {
+  StoredCredentialsConnectionProviderField,
+  StoredCredentialsConnectionProviderConfig,
+} from './storedCredentialsConnectionProviderConfigType';
 export type { StoredOAuthConnectionProviderConfig } from './storedOAuthConnectionProviderConfigType';
 export type { SyncableEntityOptions } from './syncableEntityOptionsType';
 export type {
@@ -254,6 +270,10 @@ export {
   isReservedSettingsMenuItemTitle,
 } from './utils/isReservedSettingsMenuItemTitle';
 export { isValidUniversalIdentifier } from './utils/isValidUniversalIdentifier';
+export type {
+  ValidateCredentialsPayload,
+  ValidateCredentialsResult,
+} from './validateCredentialsPayloadType';
 export type {
   ViewManifestFilterValue,
   ViewFieldManifest,

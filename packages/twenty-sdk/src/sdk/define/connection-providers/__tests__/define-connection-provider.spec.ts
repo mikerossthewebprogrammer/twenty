@@ -86,6 +86,7 @@ describe('defineConnectionProvider', () => {
   const lifecycleHookKeys = [
     'onConnectLogicFunction',
     'onDisconnectLogicFunction',
+    'onSendMessageLogicFunction',
   ] as const;
 
   it.each(lifecycleHookKeys)('accepts a valid %s', (lifecycleHookKey) => {
@@ -114,4 +115,120 @@ describe('defineConnectionProvider', () => {
       ).toBe(true);
     },
   );
+
+  describe('credentials providers', () => {
+    const baseCredentialsConfig = {
+      universalIdentifier: '99fcd8e8-fbb1-4d2c-bc16-7c61ef3ebbbb',
+      name: 'twilio',
+      displayName: 'Twilio',
+      type: 'credentials' as const,
+      credentials: {
+        fields: [
+          { key: 'accountSid', label: 'Account SID' },
+          { key: 'authToken', label: 'Auth Token', isSecret: true },
+        ],
+      },
+    };
+
+    it('returns success for a valid config', () => {
+      const result = defineConnectionProvider(baseCredentialsConfig);
+
+      expect(result.success).toBe(true);
+      expect(result.errors).toEqual([]);
+    });
+
+    it('accepts a valid onValidateCredentialsLogicFunction', () => {
+      const result = defineConnectionProvider({
+        ...baseCredentialsConfig,
+        onValidateCredentialsLogicFunction: {
+          universalIdentifier: 'b648f87b-1d26-4961-b974-0908fd991061',
+        },
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a non-UUID onValidateCredentialsLogicFunction', () => {
+      const result = defineConnectionProvider({
+        ...baseCredentialsConfig,
+        onValidateCredentialsLogicFunction: { universalIdentifier: 'nope' },
+      });
+
+      expect(result.success).toBe(false);
+      expect(
+        result.errors.some((error) =>
+          error.includes('onValidateCredentialsLogicFunction'),
+        ),
+      ).toBe(true);
+    });
+
+    it('rejects a missing credentials block', () => {
+      const { credentials: _credentials, ...configWithoutCredentials } =
+        baseCredentialsConfig;
+
+      const result = defineConnectionProvider(
+        configWithoutCredentials as typeof baseCredentialsConfig,
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toContain(
+        "Connection provider with type 'credentials' must declare a `credentials` config block",
+      );
+    });
+
+    it('rejects an empty field list', () => {
+      const result = defineConnectionProvider({
+        ...baseCredentialsConfig,
+        credentials: { fields: [] },
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toContain(
+        'Credentials connection provider must declare at least one field',
+      );
+    });
+
+    it('rejects duplicate field keys', () => {
+      const result = defineConnectionProvider({
+        ...baseCredentialsConfig,
+        credentials: {
+          fields: [
+            { key: 'token', label: 'Token' },
+            { key: 'token', label: 'Token again' },
+          ],
+        },
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toContain(
+        'Credentials connection provider field key "token" is declared more than once',
+      );
+    });
+
+    it('rejects a field key that is not an identifier', () => {
+      const result = defineConnectionProvider({
+        ...baseCredentialsConfig,
+        credentials: {
+          fields: [{ key: 'account sid', label: 'Account SID' }],
+        },
+      });
+
+      expect(result.success).toBe(false);
+      expect(
+        result.errors.some((error) => error.includes('"account sid"')),
+      ).toBe(true);
+    });
+
+    it('rejects a field without a label', () => {
+      const result = defineConnectionProvider({
+        ...baseCredentialsConfig,
+        credentials: { fields: [{ key: 'accountSid', label: '' }] },
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toContain(
+        'Credentials connection provider field "accountSid" must have a label',
+      );
+    });
+  });
 });

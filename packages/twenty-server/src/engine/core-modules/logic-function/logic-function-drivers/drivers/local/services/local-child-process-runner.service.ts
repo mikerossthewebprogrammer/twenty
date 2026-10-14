@@ -7,6 +7,7 @@ import { type LogicFunctionExecutionContext } from 'twenty-shared/logic-function
 import { type FlatApplication } from 'src/engine/core-modules/application/types/flat-application.type';
 import { getLocalDepsLayerPath } from 'src/engine/core-modules/logic-function/logic-function-drivers/drivers/local/utils/get-local-deps-layer-path.util';
 import { getLocalSdkLayerPath } from 'src/engine/core-modules/logic-function/logic-function-drivers/drivers/local/utils/get-local-sdk-layer-path.util';
+import { linkDependencyEntry } from 'src/engine/core-modules/logic-function/logic-function-drivers/drivers/local/utils/link-dependency-entry.util';
 import { HANDLER_NAME_REGEX } from 'src/engine/metadata-modules/logic-function/constants/handler.contant';
 
 export class LocalChildProcessRunnerService {
@@ -39,23 +40,23 @@ export class LocalChildProcessRunnerService {
       withFileTypes: true,
     });
 
-    const symlinkPromises = entries
-      .filter((entry) => entry.name !== 'twenty-client-sdk')
-      .map((entry) =>
-        fs.symlink(
-          join(depsNodeModules, entry.name),
-          join(execNodeModules, entry.name),
-          entry.isDirectory() ? 'dir' : 'file',
+    await Promise.all(
+      entries
+        .filter((entry) => entry.name !== 'twenty-client-sdk')
+        .map((entry) =>
+          linkDependencyEntry({
+            sourcePath: join(depsNodeModules, entry.name),
+            targetPath: join(execNodeModules, entry.name),
+            isDirectory: entry.isDirectory(),
+          }),
         ),
-      );
-
-    await Promise.all(symlinkPromises);
-
-    await fs.symlink(
-      join(sdkNodeModules, 'twenty-client-sdk'),
-      join(execNodeModules, 'twenty-client-sdk'),
-      'dir',
     );
+
+    await linkDependencyEntry({
+      sourcePath: join(sdkNodeModules, 'twenty-client-sdk'),
+      targetPath: join(execNodeModules, 'twenty-client-sdk'),
+      isDirectory: true,
+    });
   }
 
   async writeBootstrapRunner({

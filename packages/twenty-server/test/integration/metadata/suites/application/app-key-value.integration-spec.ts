@@ -27,6 +27,12 @@ const SET_APP_KEY_VALUE = gql`
   }
 `;
 
+const CLAIM_APP_KEY_VALUE = gql`
+  mutation ClaimAppKeyValue($input: ClaimAppKeyValueInput!) {
+    claimAppKeyValue(input: $input)
+  }
+`;
+
 const DELETE_APP_KEY_VALUE = gql`
   mutation DeleteAppKeyValue($key: String!, $scope: AppKeyValueScope) {
     deleteAppKeyValue(key: $key, scope: $scope)
@@ -71,6 +77,41 @@ describe('application key-value store (e2e)', () => {
 
     expect(response.body.errors).toBeDefined();
     expect(response.body.errors[0].message).toContain('APPLICATION_ACCESS');
+  });
+
+  it('claims a WORKSPACE key for exactly one of many concurrent callers', async () => {
+    const key = `:claim`;
+
+    const responses = await Promise.all(
+      Array.from({ length: 20 }, (_, index) =>
+        makeMetadataApiRequest(
+          {
+            query: CLAIM_APP_KEY_VALUE,
+            variables: { input: { key, value: { claimant: index } } },
+          },
+          appToken,
+        ),
+      ),
+    );
+
+    for (const response of responses) {
+      expect(response.body.errors).toBeUndefined();
+    }
+
+    const winners = responses.filter(
+      (response) => response.body.data.claimAppKeyValue === true,
+    );
+
+    expect(winners).toHaveLength(1);
+
+    const getResponse = await makeMetadataApiRequest(
+      { query: GET_APP_KEY_VALUE, variables: { key } },
+      appToken,
+    );
+
+    expect(getResponse.body.data.appKeyValue.value).toEqual({
+      claimant: responses.indexOf(winners[0]),
+    });
   });
 
   it('sets, reads, overwrites and deletes a WORKSPACE entry', async () => {

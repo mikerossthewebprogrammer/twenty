@@ -12,6 +12,7 @@ import { AppConnectionObjectDto } from 'src/engine/core-modules/application/conn
 import { ListAppConnectionsInput } from 'src/engine/core-modules/application/connection-provider/connections/dtos/list-app-connections.input';
 import { ReportAppConnectionAuthFailureInput } from 'src/engine/core-modules/application/connection-provider/connections/dtos/report-app-connection-auth-failure.input';
 import { ApplicationConnectionAuthFailureService } from 'src/engine/core-modules/application/connection-provider/connections/services/application-connection-auth-failure.service';
+import { ApplicationConnectionManageAccessService } from 'src/engine/core-modules/application/connection-provider/connections/services/application-connection-manage-access.service';
 import { ApplicationConnectionsListService } from 'src/engine/core-modules/application/connection-provider/connections/services/application-connections-list.service';
 import { type FlatApplication } from 'src/engine/core-modules/application/types/flat-application.type';
 import { type FlatWorkspace } from 'src/engine/core-modules/workspace/types/flat-workspace.type';
@@ -45,6 +46,7 @@ export class ApplicationConnectionsResolver {
   constructor(
     private readonly listService: ApplicationConnectionsListService,
     private readonly authFailureService: ApplicationConnectionAuthFailureService,
+    private readonly manageAccessService: ApplicationConnectionManageAccessService,
   ) {}
 
   @Query(() => [AppConnectionObjectDto])
@@ -72,6 +74,24 @@ export class ApplicationConnectionsResolver {
     @Args('id', { type: () => ID }) id: string,
   ): Promise<AppConnectionObjectDto> {
     return this.listService.getOne({
+      applicationId: application.id,
+      workspaceId: workspace.id,
+      requestUserWorkspaceId: userWorkspaceId ?? null,
+      id,
+    });
+  }
+
+  // Lets an app gate actions that change shared provider state on the same
+  // rule Twenty uses to create or reconnect the connection
+  @Query(() => Boolean)
+  async canManageAppConnection(
+    @AuthApplication() application: FlatApplication,
+    @AuthWorkspace() workspace: FlatWorkspace,
+    @AuthUserWorkspaceId({ allowUndefined: true })
+    userWorkspaceId: string | undefined,
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<boolean> {
+    return this.manageAccessService.canManage({
       applicationId: application.id,
       workspaceId: workspace.id,
       requestUserWorkspaceId: userWorkspaceId ?? null,

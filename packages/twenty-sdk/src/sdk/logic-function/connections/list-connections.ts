@@ -12,6 +12,7 @@ const LIST_APP_CONNECTIONS_QUERY = `
       userWorkspaceId
       workspaceMemberId
       accessToken
+      credentials
       scopes
       authFailedAt
       authFailedReason

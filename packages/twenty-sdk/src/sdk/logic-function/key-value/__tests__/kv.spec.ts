@@ -128,4 +128,32 @@ describe('kv', () => {
       kv.set('slack:team:T123', undefined, { scope: 'SERVER' }),
     ).rejects.toThrow(/already claimed/);
   });
+  it('claims a key and reports whether this caller won it', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { claimAppKeyValue: true } }), {
+        status: 200,
+      }),
+    );
+
+    await expect(kv.claim('send:abc', { status: 'pending' })).resolves.toBe(
+      true,
+    );
+
+    const body = JSON.parse(String(fetchSpy.mock.calls[0][1]?.body));
+
+    expect(body.query).toContain('claimAppKeyValue');
+    expect(body.variables).toEqual({
+      input: { key: 'send:abc', value: { status: 'pending' } },
+    });
+  });
+
+  it('reports a lost claim when the key already exists', async () => {
+    fetchSpy.mockResolvedValue(
+      new Response(JSON.stringify({ data: { claimAppKeyValue: false } }), {
+        status: 200,
+      }),
+    );
+
+    await expect(kv.claim('send:abc', {})).resolves.toBe(false);
+  });
 });

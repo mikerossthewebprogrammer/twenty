@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppConnectionAccessService } from 'src/engine/core-modules/application/connection-provider/app-connection-access.service';
 import { ApplicationConnectionProviderResolver } from 'src/engine/core-modules/application/connection-provider/application-connection-provider.resolver';
+import { ApplicationCredentialsConnectionResolver } from 'src/engine/core-modules/application/connection-provider/application-credentials-connection.resolver';
+import { ConnectionProviderCredentialsFlowService } from 'src/engine/core-modules/application/connection-provider/connection-provider-credentials-flow.service';
 import { ConnectionProviderEntity } from 'src/engine/core-modules/application/connection-provider/connection-provider.entity';
 import { ConnectionProviderLifecycleHookService } from 'src/engine/core-modules/application/connection-provider/connection-provider-lifecycle-hook.service';
 import { ConnectionProviderOAuthFlowService } from 'src/engine/core-modules/application/connection-provider/connection-provider-oauth-flow.service';
@@ -10,6 +12,7 @@ import { ConnectionProviderService } from 'src/engine/core-modules/application/c
 import { ApplicationRegistrationVariableEntity } from 'src/engine/core-modules/application/application-registration-variable/application-registration-variable.entity';
 import { ApplicationEntity } from 'src/engine/core-modules/application/application.entity';
 import { JwtModule } from 'src/engine/core-modules/jwt/jwt.module';
+import { CacheLockModule } from 'src/engine/core-modules/cache-lock/cache-lock.module';
 import { LogicFunctionExecutorModule } from 'src/engine/core-modules/logic-function/logic-function-executor/logic-function-executor.module';
 import { SecretEncryptionModule } from 'src/engine/core-modules/secret-encryption/secret-encryption.module';
 import { SecureHttpClientModule } from 'src/engine/core-modules/secure-http-client/secure-http-client.module';
@@ -38,6 +41,7 @@ import { ApplicationRegistrationLookupModule } from 'src/engine/core-modules/app
       UserEntity,
     ]),
     JwtModule,
+    CacheLockModule,
     LogicFunctionExecutorModule,
     SecretEncryptionModule,
     SecureHttpClientModule,
@@ -54,6 +58,8 @@ import { ApplicationRegistrationLookupModule } from 'src/engine/core-modules/app
     ConnectionProviderOAuthFlowService,
     ConnectionProviderLifecycleHookService,
     ApplicationConnectionProviderResolver,
+    ConnectionProviderCredentialsFlowService,
+    ApplicationCredentialsConnectionResolver,
     provideWorkspaceScopedRepository(ApplicationEntity),
   ],
   exports: [

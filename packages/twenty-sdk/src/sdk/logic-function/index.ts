@@ -43,6 +43,7 @@ export {
 } from 'twenty-shared/logic-function';
 
 export { getConnection } from '@/sdk/logic-function/connections/get-connection';
+export { canManageConnection } from '@/sdk/logic-function/connections/can-manage-connection';
 export { listConnections } from '@/sdk/logic-function/connections/list-connections';
 export type { ListConnectionsFilter } from '@/sdk/logic-function/connections/list-connections';
 export { findConnectionForRequest } from '@/sdk/logic-function/connections/find-connection-for-request';
@@ -58,12 +59,22 @@ export { updateMessageChannel } from '@/sdk/logic-function/messaging/update-mess
 export type { UpdateMessageChannelInput } from '@/sdk/logic-function/messaging/update-message-channel';
 export { deleteMessageChannel } from '@/sdk/logic-function/messaging/delete-message-channel';
 export { ingestMessages } from '@/sdk/logic-function/messaging/ingest-messages';
+export {
+  MessageChannelVisibility,
+  MessageParticipantRole,
+} from 'twenty-shared/types';
 export type {
   IngestedMessage,
   IngestMessage,
   IngestMessageParticipant,
 } from '@/sdk/logic-function/messaging/types/ingest-message.type';
 export type { AppMessageChannel } from '@/sdk/logic-function/messaging/types/app-message-channel.type';
+export type {
+  SendAppChannelMessagePayload,
+  SendAppChannelMessageResult,
+  ValidateCredentialsPayload,
+  ValidateCredentialsResult,
+} from 'twenty-shared/application';
 
 export { runAgent } from '@/sdk/logic-function/agents/run-agent';
 export type { RunAgentInput, RunAgentResult } from 'twenty-shared/application';

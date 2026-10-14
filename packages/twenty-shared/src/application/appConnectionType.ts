@@ -33,6 +33,9 @@ export type AppConnection = {
   // user is no longer a member of the workspace.
   workspaceMemberId: string | null;
   accessToken: string;
+  // Values the user entered for a 'credentials' provider, keyed by field key.
+  // null for OAuth connections.
+  credentials: Record<string, string> | null;
   // OAuth scopes actually granted by the upstream provider on the most recent
   // token issuance (may be a subset of what the app requested).
   scopes: string[];

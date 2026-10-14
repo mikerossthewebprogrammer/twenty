@@ -17,6 +17,8 @@ export const connectionProviderGraphqlApiExceptionHandler = (error: Error) => {
       case ConnectionProviderExceptionCode.PROVIDER_NOT_FOUND:
       case ConnectionProviderExceptionCode.ON_CONNECT_LOGIC_FUNCTION_NOT_FOUND:
       case ConnectionProviderExceptionCode.ON_DISCONNECT_LOGIC_FUNCTION_NOT_FOUND:
+      case ConnectionProviderExceptionCode.ON_VALIDATE_CREDENTIALS_LOGIC_FUNCTION_NOT_FOUND:
+      case ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_NOT_FOUND:
         throw new NotFoundError(error);
       case ConnectionProviderExceptionCode.FORBIDDEN:
         throw new ForbiddenError(error);
@@ -24,11 +26,14 @@ export const connectionProviderGraphqlApiExceptionHandler = (error: Error) => {
       case ConnectionProviderExceptionCode.INVALID_STATE:
       case ConnectionProviderExceptionCode.INVALID_CONNECTION_PROVIDER_INPUT:
       case ConnectionProviderExceptionCode.CONNECTION_PROVIDER_NAME_ALREADY_EXISTS:
+      case ConnectionProviderExceptionCode.INVALID_CREDENTIALS:
         throw new UserInputError(error);
       case ConnectionProviderExceptionCode.CLIENT_CREDENTIALS_NOT_CONFIGURED:
       case ConnectionProviderExceptionCode.TOKEN_EXCHANGE_FAILED:
       case ConnectionProviderExceptionCode.REFRESH_FAILED:
       case ConnectionProviderExceptionCode.ON_DISCONNECT_LOGIC_FUNCTION_FAILED:
+      case ConnectionProviderExceptionCode.ON_VALIDATE_CREDENTIALS_LOGIC_FUNCTION_FAILED:
+      case ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_FAILED:
         throw new InternalServerError(error);
       default: {
         return assertUnreachable(error.code);

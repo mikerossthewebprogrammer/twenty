@@ -5,6 +5,7 @@ import { useReplyConnectedAccount } from '@/activities/emails/hooks/useReplyConn
 import {
   MyConnectedAccountsDocument,
   MyMessageChannelsDocument,
+  MessageChannelType,
 } from '~/generated-metadata/graphql';
 import { ConnectedAccountProvider } from 'twenty-shared/types';
 
@@ -16,7 +17,12 @@ jest.mock('@apollo/client/react', () => ({
 }));
 
 const stubQueries = (
-  channels: { id: string; connectedAccountId: string }[],
+  channels: {
+    id: string;
+    connectedAccountId: string;
+    type?: MessageChannelType;
+    handle?: string;
+  }[],
   accounts: {
     id: string;
     handle: string;
@@ -43,7 +49,12 @@ describe('useReplyConnectedAccount', () => {
     stubQueries(
       [
         { id: 'channel-google', connectedAccountId: 'account-google' },
-        { id: 'channel-imap', connectedAccountId: 'account-imap' },
+        {
+          id: 'channel-imap',
+          connectedAccountId: 'account-imap',
+          type: MessageChannelType.EMAIL,
+          handle: 'imap@example.com',
+        },
       ],
       [
         {
@@ -67,6 +78,8 @@ describe('useReplyConnectedAccount', () => {
       connectedAccountId: 'account-imap',
       connectedAccountHandle: 'imap@example.com',
       connectedAccountProvider: ConnectedAccountProvider.IMAP_SMTP_CALDAV,
+      messageChannelType: MessageChannelType.EMAIL,
+      messageChannelHandle: 'imap@example.com',
       loading: false,
     });
   });
@@ -110,5 +123,31 @@ describe('useReplyConnectedAccount', () => {
     expect(result.current.connectedAccountId).toBeNull();
     expect(result.current.connectedAccountHandle).toBeNull();
     expect(result.current.connectedAccountProvider).toBeNull();
+  });
+  it('exposes an app channel so SMS threads can pick their own composer', () => {
+    stubQueries(
+      [
+        {
+          id: 'channel-sms',
+          connectedAccountId: 'account-twilio',
+          type: MessageChannelType.APP,
+          handle: '+15550001111',
+        },
+      ],
+      [
+        {
+          id: 'account-twilio',
+          handle: 'AC123',
+          provider: ConnectedAccountProvider.APP,
+        },
+      ],
+    );
+
+    const { result } = renderHook(() =>
+      useReplyConnectedAccount('channel-sms'),
+    );
+
+    expect(result.current.messageChannelType).toBe(MessageChannelType.APP);
+    expect(result.current.messageChannelHandle).toBe('+15550001111');
   });
 });

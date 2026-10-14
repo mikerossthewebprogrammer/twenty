@@ -291,11 +291,17 @@ export type ApiKeyToken = {
   token: Scalars['String']['output'];
 };
 
+export type AppChannelMessageRecipientInput = {
+  handle: Scalars['String']['input'];
+  personId?: InputMaybe<Scalars['UUID']['input']>;
+};
+
 export type AppConnection = {
   __typename?: 'AppConnection';
   accessToken: Scalars['String']['output'];
   authFailedAt?: Maybe<Scalars['String']['output']>;
   authFailedReason?: Maybe<Scalars['String']['output']>;
+  credentials?: Maybe<Scalars['JSON']['output']>;
   handle: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
@@ -413,12 +419,27 @@ export type ApplicationConnectedAccountDto = {
 export type ApplicationConnectionProvider = {
   __typename?: 'ApplicationConnectionProvider';
   applicationId: Scalars['String']['output'];
+  credentials?: Maybe<ApplicationConnectionProviderCredentialsConfig>;
   displayName: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
   logoUrl?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
   oauth?: Maybe<ApplicationConnectionProviderOAuthConfig>;
   type: Scalars['String']['output'];
+};
+
+export type ApplicationConnectionProviderCredentialsConfig = {
+  __typename?: 'ApplicationConnectionProviderCredentialsConfig';
+  fields: Array<ApplicationConnectionProviderCredentialsField>;
+};
+
+export type ApplicationConnectionProviderCredentialsField = {
+  __typename?: 'ApplicationConnectionProviderCredentialsField';
+  description?: Maybe<Scalars['String']['output']>;
+  isSecret: Scalars['Boolean']['output'];
+  key: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  placeholder?: Maybe<Scalars['String']['output']>;
 };
 
 export type ApplicationConnectionProviderOAuthConfig = {
@@ -1105,6 +1126,11 @@ export type CheckUserExist = {
   isEmailVerified: Scalars['Boolean']['output'];
 };
 
+export type ClaimAppKeyValueInput = {
+  key: Scalars['String']['input'];
+  value?: InputMaybe<Scalars['JSON']['input']>;
+};
+
 export type ClaimableApplicationRegistration = {
   __typename?: 'ClaimableApplicationRegistration';
   author?: Maybe<Scalars['String']['output']>;
@@ -1318,6 +1344,19 @@ export type CreateApiKeyInput = {
   name: Scalars['String']['input'];
   revokedAt?: InputMaybe<Scalars['String']['input']>;
   roleId: Scalars['UUID']['input'];
+};
+
+export type CreateAppCredentialsConnectionInput = {
+  applicationId: Scalars['UUID']['input'];
+  providerName: Scalars['String']['input'];
+  reconnectingConnectedAccountId?: InputMaybe<Scalars['UUID']['input']>;
+  values: Scalars['JSON']['input'];
+  visibility: Scalars['String']['input'];
+};
+
+export type CreateAppCredentialsConnectionOutput = {
+  __typename?: 'CreateAppCredentialsConnectionOutput';
+  connectedAccountId: Scalars['UUID']['output'];
 };
 
 export type CreateAppMessageChannelInput = {
@@ -3081,6 +3120,7 @@ export type Mutation = {
   checkCustomDomainValidRecords?: Maybe<DomainValidRecords>;
   checkPublicDomainValidRecords?: Maybe<DomainValidRecords>;
   checkoutSession: BillingSession;
+  claimAppKeyValue: Scalars['Boolean']['output'];
   claimApplicationRegistrationOwnership: ApplicationRegistration;
   completeAppTarballUpload: ApplicationRegistration;
   completeApplicationFileUploads: CompleteApplicationFileUploadsResult;
@@ -3090,6 +3130,7 @@ export type Mutation = {
   completeWorkspaceLogoUpload: FileWithSignedUrl;
   completeWorkspaceMemberProfilePictureUpload: FileWithSignedUrl;
   createApiKey: ApiKey;
+  createAppCredentialsConnection: CreateAppCredentialsConnectionOutput;
   createAppMessageChannel: MessageChannel;
   createApplicationFileUploads: CreateApplicationFileUploadsResult;
   createApplicationRegistration: CreateApplicationRegistration;
@@ -3243,6 +3284,7 @@ export type Mutation = {
   runApplicationHealthCheck?: Maybe<ApplicationHealthCheckResult>;
   runEvaluationInput: AgentTurn;
   saveImapSmtpCaldavAccount: ImapSmtpCaldavConnectionSuccess;
+  sendAppChannelMessage: SendAppChannelMessageOutput;
   sendChatMessage: SendChatMessageResult;
   sendEmail: SendEmailOutput;
   sendInboxMessage: SendInboxMessageResult;
@@ -3408,6 +3450,11 @@ export type MutationCheckoutSessionArgs = {
 };
 
 
+export type MutationClaimAppKeyValueArgs = {
+  input: ClaimAppKeyValueInput;
+};
+
+
 export type MutationClaimApplicationRegistrationOwnershipArgs = {
   applicationRegistrationId: Scalars['String']['input'];
 };
@@ -3453,6 +3500,11 @@ export type MutationCompleteWorkspaceMemberProfilePictureUploadArgs = {
 
 export type MutationCreateApiKeyArgs = {
   input: CreateApiKeyInput;
+};
+
+
+export type MutationCreateAppCredentialsConnectionArgs = {
+  input: CreateAppCredentialsConnectionInput;
 };
 
 
@@ -4182,6 +4234,11 @@ export type MutationSaveImapSmtpCaldavAccountArgs = {
   connectionParameters: EmailAccountConnectionParameters;
   handle: Scalars['String']['input'];
   id?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+
+export type MutationSendAppChannelMessageArgs = {
+  input: SendAppChannelMessageInput;
 };
 
 
@@ -5254,6 +5311,7 @@ export type Query = {
   barChartData: BarChartData;
   billingPortalSession: BillingSession;
   callRecordingIdForCalendarEvent?: Maybe<Scalars['UUID']['output']>;
+  canManageAppConnection: Scalars['Boolean']['output'];
   chatMessages: Array<AgentMessage>;
   chatStreamCatchupChunks: ChatStreamCatchupChunks;
   chatThread: AgentChatThread;
@@ -5446,6 +5504,11 @@ export type QueryBillingPortalSessionArgs = {
 
 export type QueryCallRecordingIdForCalendarEventArgs = {
   calendarEventId: Scalars['UUID']['input'];
+};
+
+
+export type QueryCanManageAppConnectionArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -6198,6 +6261,21 @@ export type SearchField = {
   position: Scalars['Float']['output'];
   tsVectorFieldMetadataId: Scalars['UUID']['output'];
   updatedAt: Scalars['DateTime']['output'];
+};
+
+export type SendAppChannelMessageInput = {
+  fileIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
+  idempotencyKey: Scalars['String']['input'];
+  messageChannelId: Scalars['UUID']['input'];
+  recipients: Array<AppChannelMessageRecipientInput>;
+  text: Scalars['String']['input'];
+  threadExternalId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type SendAppChannelMessageOutput = {
+  __typename?: 'SendAppChannelMessageOutput';
+  messageId: Scalars['UUID']['output'];
+  messageThreadId: Scalars['UUID']['output'];
 };
 
 export type SendChatMessageResult = {
@@ -7956,6 +8034,13 @@ export type CancelMessageCampaignMutationVariables = Exact<{
 
 export type CancelMessageCampaignMutation = { __typename?: 'Mutation', cancelMessageCampaign: { __typename?: 'CancelMessageCampaignOutputDTO', campaignId: string, canceledMessageCount: number } };
 
+export type SendAppChannelMessageMutationVariables = Exact<{
+  input: SendAppChannelMessageInput;
+}>;
+
+
+export type SendAppChannelMessageMutation = { __typename?: 'Mutation', sendAppChannelMessage: { __typename?: 'SendAppChannelMessageOutput', messageId: string, messageThreadId: string } };
+
 export type SendEmailMutationVariables = Exact<{
   input: SendEmailInput;
 }>;
@@ -9666,6 +9751,13 @@ export type GithubClaimAuthorizationUrlQueryVariables = Exact<{
 
 export type GithubClaimAuthorizationUrlQuery = { __typename?: 'Query', githubClaimAuthorizationUrl: string };
 
+export type CreateAppCredentialsConnectionMutationVariables = Exact<{
+  input: CreateAppCredentialsConnectionInput;
+}>;
+
+
+export type CreateAppCredentialsConnectionMutation = { __typename?: 'Mutation', createAppCredentialsConnection: { __typename?: 'CreateAppCredentialsConnectionOutput', connectedAccountId: string } };
+
 export type TriggerUninstallApplicationJobMutationVariables = Exact<{
   input: TriggerUninstallApplicationJobInput;
 }>;
@@ -9709,7 +9801,7 @@ export type ApplicationConnectionProvidersQueryVariables = Exact<{
 }>;
 
 
-export type ApplicationConnectionProvidersQuery = { __typename?: 'Query', applicationConnectionProviders: Array<{ __typename?: 'ApplicationConnectionProvider', id: string, applicationId: string, type: string, name: string, displayName: string, logoUrl?: string | null, oauth?: { __typename?: 'ApplicationConnectionProviderOAuthConfig', scopes: Array<string>, isClientCredentialsConfigured: boolean } | null }> };
+export type ApplicationConnectionProvidersQuery = { __typename?: 'Query', applicationConnectionProviders: Array<{ __typename?: 'ApplicationConnectionProvider', id: string, applicationId: string, type: string, name: string, displayName: string, logoUrl?: string | null, oauth?: { __typename?: 'ApplicationConnectionProviderOAuthConfig', scopes: Array<string>, isClientCredentialsConfigured: boolean } | null, credentials?: { __typename?: 'ApplicationConnectionProviderCredentialsConfig', fields: Array<{ __typename?: 'ApplicationConnectionProviderCredentialsField', key: string, label: string, description?: string | null, placeholder?: string | null, isSecret: boolean }> } | null }> };
 
 export type FindUninstallApplicationJobStatusQueryVariables = Exact<{
   universalIdentifier: Scalars['String']['input'];
@@ -10682,6 +10774,7 @@ export const CreateCalendarEventDocument = {"kind":"Document","definitions":[{"k
 export const PreviewMessageCampaignAudienceDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"PreviewMessageCampaignAudience"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"PreviewMessageCampaignAudienceInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"previewMessageCampaignAudience"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"totalMembers"}},{"kind":"Field","name":{"kind":"Name","value":"withoutEmail"}},{"kind":"Field","name":{"kind":"Name","value":"duplicateEmails"}},{"kind":"Field","name":{"kind":"Name","value":"hardSuppressed"}},{"kind":"Field","name":{"kind":"Name","value":"globallyUnsubscribed"}},{"kind":"Field","name":{"kind":"Name","value":"topicUnsubscribed"}},{"kind":"Field","name":{"kind":"Name","value":"trackingRefused"}},{"kind":"Field","name":{"kind":"Name","value":"sendable"}}]}}]}}]} as unknown as DocumentNode<PreviewMessageCampaignAudienceQuery, PreviewMessageCampaignAudienceQueryVariables>;
 export const UnsubscribeTopicsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"UnsubscribeTopics"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unsubscribeTopics"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"visibility"}}]}}]}}]} as unknown as DocumentNode<UnsubscribeTopicsQuery, UnsubscribeTopicsQueryVariables>;
 export const CancelMessageCampaignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CancelMessageCampaign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CancelMessageCampaignInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cancelMessageCampaign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"campaignId"}},{"kind":"Field","name":{"kind":"Name","value":"canceledMessageCount"}}]}}]}}]} as unknown as DocumentNode<CancelMessageCampaignMutation, CancelMessageCampaignMutationVariables>;
+export const SendAppChannelMessageDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SendAppChannelMessage"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendAppChannelMessageInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendAppChannelMessage"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"messageId"}},{"kind":"Field","name":{"kind":"Name","value":"messageThreadId"}}]}}]}}]} as unknown as DocumentNode<SendAppChannelMessageMutation, SendAppChannelMessageMutationVariables>;
 export const SendEmailDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SendEmail"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendEmailInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendEmail"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"success"}},{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"messageThreadId"}}]}}]}}]} as unknown as DocumentNode<SendEmailMutation, SendEmailMutationVariables>;
 export const SendMessageCampaignDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SendMessageCampaign"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendMessageCampaignInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendMessageCampaign"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"campaignId"}},{"kind":"Field","name":{"kind":"Name","value":"queuedCount"}},{"kind":"Field","name":{"kind":"Name","value":"audience"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"totalMembers"}},{"kind":"Field","name":{"kind":"Name","value":"withoutEmail"}},{"kind":"Field","name":{"kind":"Name","value":"duplicateEmails"}},{"kind":"Field","name":{"kind":"Name","value":"hardSuppressed"}},{"kind":"Field","name":{"kind":"Name","value":"globallyUnsubscribed"}},{"kind":"Field","name":{"kind":"Name","value":"topicUnsubscribed"}},{"kind":"Field","name":{"kind":"Name","value":"trackingRefused"}},{"kind":"Field","name":{"kind":"Name","value":"sendable"}}]}}]}}]}}]} as unknown as DocumentNode<SendMessageCampaignMutation, SendMessageCampaignMutationVariables>;
 export const SendMessageCampaignTestDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SendMessageCampaignTest"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"SendMessageCampaignTestInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendMessageCampaignTest"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"messageId"}}]}}]}}]} as unknown as DocumentNode<SendMessageCampaignTestMutation, SendMessageCampaignTestMutationVariables>;
@@ -10868,12 +10961,13 @@ export const FindClaimableApplicationRegistrationDocument = {"kind":"Document","
 export const FindManyApplicationRegistrationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindManyApplicationRegistrations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findManyApplicationRegistrations"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApplicationRegistrationListItem"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApplicationRegistrationListItem"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApplicationRegistration"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"universalIdentifier"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"logoUrl"}}]}}]} as unknown as DocumentNode<FindManyApplicationRegistrationsQuery, FindManyApplicationRegistrationsQueryVariables>;
 export const FindOneApplicationRegistrationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindOneApplicationRegistration"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findOneApplicationRegistration"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"ApplicationRegistrationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"ApplicationRegistrationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ApplicationRegistration"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"universalIdentifier"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"logoUrl"}},{"kind":"Field","name":{"kind":"Name","value":"galleryImagesUrls"}},{"kind":"Field","name":{"kind":"Name","value":"oAuthClientId"}},{"kind":"Field","name":{"kind":"Name","value":"oAuthRedirectUris"}},{"kind":"Field","name":{"kind":"Name","value":"oAuthScopes"}},{"kind":"Field","name":{"kind":"Name","value":"sourceType"}},{"kind":"Field","name":{"kind":"Name","value":"sourcePackage"}},{"kind":"Field","name":{"kind":"Name","value":"latestAvailableVersion"}},{"kind":"Field","name":{"kind":"Name","value":"isListed"}},{"kind":"Field","name":{"kind":"Name","value":"isVetted"}},{"kind":"Field","name":{"kind":"Name","value":"isPreInstalled"}},{"kind":"Field","name":{"kind":"Name","value":"isConfigured"}},{"kind":"Field","name":{"kind":"Name","value":"ownerWorkspaceId"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]} as unknown as DocumentNode<FindOneApplicationRegistrationQuery, FindOneApplicationRegistrationQueryVariables>;
 export const GithubClaimAuthorizationUrlDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"GithubClaimAuthorizationUrl"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationRegistrationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"githubClaimAuthorizationUrl"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applicationRegistrationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationRegistrationId"}}}]}]}}]} as unknown as DocumentNode<GithubClaimAuthorizationUrlQuery, GithubClaimAuthorizationUrlQueryVariables>;
+export const CreateAppCredentialsConnectionDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CreateAppCredentialsConnection"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"CreateAppCredentialsConnectionInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"createAppCredentialsConnection"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectedAccountId"}}]}}]}}]} as unknown as DocumentNode<CreateAppCredentialsConnectionMutation, CreateAppCredentialsConnectionMutationVariables>;
 export const TriggerUninstallApplicationJobDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"TriggerUninstallApplicationJob"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"TriggerUninstallApplicationJobInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"triggerUninstallApplicationJob"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"jobId"}}]}}]}}]} as unknown as DocumentNode<TriggerUninstallApplicationJobMutation, TriggerUninstallApplicationJobMutationVariables>;
 export const UninstallApplicationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UninstallApplication"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"universalIdentifier"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"uninstallApplication"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"universalIdentifier"},"value":{"kind":"Variable","name":{"kind":"Name","value":"universalIdentifier"}}}]}]}}]} as unknown as DocumentNode<UninstallApplicationMutation, UninstallApplicationMutationVariables>;
 export const UpdateApplicationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateApplication"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UpdateApplicationInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateApplication"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"autoUpgrade"}}]}}]}}]} as unknown as DocumentNode<UpdateApplicationMutation, UpdateApplicationMutationVariables>;
 export const UpdateOneApplicationVariableDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"UpdateOneApplicationVariable"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"key"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"value"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateOneApplicationVariable"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"key"},"value":{"kind":"Variable","name":{"kind":"Name","value":"key"}}},{"kind":"Argument","name":{"kind":"Name","value":"value"},"value":{"kind":"Variable","name":{"kind":"Name","value":"value"}}},{"kind":"Argument","name":{"kind":"Name","value":"applicationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}}}]}]}}]} as unknown as DocumentNode<UpdateOneApplicationVariableMutation, UpdateOneApplicationVariableMutationVariables>;
 export const ApplicationConnectedAccountsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApplicationConnectedAccounts"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applicationConnectedAccounts"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applicationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"handle"}},{"kind":"Field","name":{"kind":"Name","value":"authFailedAt"}},{"kind":"Field","name":{"kind":"Name","value":"authFailedReason"}},{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"lastSignedInAt"}},{"kind":"Field","name":{"kind":"Name","value":"connectionProviderId"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"visibility"}},{"kind":"Field","name":{"kind":"Name","value":"lastCredentialsRefreshedAt"}},{"kind":"Field","name":{"kind":"Name","value":"createdAt"}},{"kind":"Field","name":{"kind":"Name","value":"updatedAt"}}]}}]}}]} as unknown as DocumentNode<ApplicationConnectedAccountsQuery, ApplicationConnectedAccountsQueryVariables>;
-export const ApplicationConnectionProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApplicationConnectionProviders"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applicationConnectionProviders"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applicationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"logoUrl"}},{"kind":"Field","name":{"kind":"Name","value":"oauth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"isClientCredentialsConfigured"}}]}}]}}]}}]} as unknown as DocumentNode<ApplicationConnectionProvidersQuery, ApplicationConnectionProvidersQueryVariables>;
+export const ApplicationConnectionProvidersDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"ApplicationConnectionProviders"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"UUID"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"applicationConnectionProviders"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"applicationId"},"value":{"kind":"Variable","name":{"kind":"Name","value":"applicationId"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"applicationId"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"displayName"}},{"kind":"Field","name":{"kind":"Name","value":"logoUrl"}},{"kind":"Field","name":{"kind":"Name","value":"oauth"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"scopes"}},{"kind":"Field","name":{"kind":"Name","value":"isClientCredentialsConfigured"}}]}},{"kind":"Field","name":{"kind":"Name","value":"credentials"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"fields"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"key"}},{"kind":"Field","name":{"kind":"Name","value":"label"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"placeholder"}},{"kind":"Field","name":{"kind":"Name","value":"isSecret"}}]}}]}}]}}]}}]} as unknown as DocumentNode<ApplicationConnectionProvidersQuery, ApplicationConnectionProvidersQueryVariables>;
 export const FindUninstallApplicationJobStatusDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"FindUninstallApplicationJobStatus"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"universalIdentifier"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"findUninstallApplicationJobStatus"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"universalIdentifier"},"value":{"kind":"Variable","name":{"kind":"Name","value":"universalIdentifier"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"jobId"}},{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"failedReason"}}]}}]}}]} as unknown as DocumentNode<FindUninstallApplicationJobStatusQuery, FindUninstallApplicationJobStatusQueryVariables>;
 export const CancelSwitchBillingIntervalDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CancelSwitchBillingInterval"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cancelSwitchBillingInterval"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentBillingSubscription"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"CurrentBillingSubscriptionFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"billingSubscriptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseItemFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseItem"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"quantity"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhase"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start_date"}},{"kind":"Field","name":{"kind":"Name","value":"end_date"}},{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseItemFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"CurrentBillingSubscriptionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscription"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"interval"}},{"kind":"Field","name":{"kind":"Name","value":"metadata"}},{"kind":"Field","name":{"kind":"Name","value":"currentPeriodEnd"}},{"kind":"Field","name":{"kind":"Name","value":"cancelAt"}},{"kind":"Field","name":{"kind":"Name","value":"phases"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"billingSubscriptionItems"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"hasReachedCurrentPeriodCap"}},{"kind":"Field","name":{"kind":"Name","value":"quantity"}},{"kind":"Field","name":{"kind":"Name","value":"stripePriceId"}},{"kind":"Field","name":{"kind":"Name","value":"unitAmount"}},{"kind":"Field","name":{"kind":"Name","value":"creditAmount"}},{"kind":"Field","name":{"kind":"Name","value":"billingProduct"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"images"}},{"kind":"Field","name":{"kind":"Name","value":"metadata"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productKey"}},{"kind":"Field","name":{"kind":"Name","value":"planKey"}},{"kind":"Field","name":{"kind":"Name","value":"priceUsageBased"}},{"kind":"Field","name":{"kind":"Name","value":"isLegacy"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BillingSubscriptionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscription"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"metadata"}},{"kind":"Field","name":{"kind":"Name","value":"cancelAt"}},{"kind":"Field","name":{"kind":"Name","value":"phases"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseFragment"}}]}}]}}]} as unknown as DocumentNode<CancelSwitchBillingIntervalMutation, CancelSwitchBillingIntervalMutationVariables>;
 export const CancelSwitchBillingPlanDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"CancelSwitchBillingPlan"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cancelSwitchBillingPlan"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"currentBillingSubscription"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"CurrentBillingSubscriptionFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"billingSubscriptions"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseItemFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseItem"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"price"}},{"kind":"Field","name":{"kind":"Name","value":"quantity"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhase"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"start_date"}},{"kind":"Field","name":{"kind":"Name","value":"end_date"}},{"kind":"Field","name":{"kind":"Name","value":"items"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseItemFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"CurrentBillingSubscriptionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscription"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"interval"}},{"kind":"Field","name":{"kind":"Name","value":"metadata"}},{"kind":"Field","name":{"kind":"Name","value":"currentPeriodEnd"}},{"kind":"Field","name":{"kind":"Name","value":"cancelAt"}},{"kind":"Field","name":{"kind":"Name","value":"phases"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseFragment"}}]}},{"kind":"Field","name":{"kind":"Name","value":"billingSubscriptionItems"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"hasReachedCurrentPeriodCap"}},{"kind":"Field","name":{"kind":"Name","value":"quantity"}},{"kind":"Field","name":{"kind":"Name","value":"stripePriceId"}},{"kind":"Field","name":{"kind":"Name","value":"unitAmount"}},{"kind":"Field","name":{"kind":"Name","value":"creditAmount"}},{"kind":"Field","name":{"kind":"Name","value":"billingProduct"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"images"}},{"kind":"Field","name":{"kind":"Name","value":"metadata"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"productKey"}},{"kind":"Field","name":{"kind":"Name","value":"planKey"}},{"kind":"Field","name":{"kind":"Name","value":"priceUsageBased"}},{"kind":"Field","name":{"kind":"Name","value":"isLegacy"}}]}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"BillingSubscriptionFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"BillingSubscription"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"metadata"}},{"kind":"Field","name":{"kind":"Name","value":"cancelAt"}},{"kind":"Field","name":{"kind":"Name","value":"phases"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"BillingSubscriptionSchedulePhaseFragment"}}]}}]}}]} as unknown as DocumentNode<CancelSwitchBillingPlanMutation, CancelSwitchBillingPlanMutationVariables>;

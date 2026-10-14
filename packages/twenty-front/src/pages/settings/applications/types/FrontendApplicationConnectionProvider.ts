@@ -8,6 +8,18 @@ export type FrontendApplicationConnectionProviderOAuthConfig = {
   isClientCredentialsConfigured: boolean;
 };
 
+export type FrontendApplicationConnectionProviderCredentialsField = {
+  key: string;
+  label: string;
+  description: string | null;
+  placeholder: string | null;
+  isSecret: boolean;
+};
+
+export type FrontendApplicationConnectionProviderCredentialsConfig = {
+  fields: FrontendApplicationConnectionProviderCredentialsField[];
+};
+
 export type FrontendApplicationConnectionProvider = {
   id: string;
   applicationId: string;
@@ -16,4 +28,5 @@ export type FrontendApplicationConnectionProvider = {
   displayName: string;
   logoUrl: string | null;
   oauth: FrontendApplicationConnectionProviderOAuthConfig | null;
+  credentials: FrontendApplicationConnectionProviderCredentialsConfig | null;
 };

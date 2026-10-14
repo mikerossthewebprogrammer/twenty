@@ -2,8 +2,9 @@ import { ApiService } from '@/cli/utilities/api/api-service';
 import { type ApplicationFileUploadRequest } from '@/cli/utilities/api/file-api';
 import { serializeError } from '@/cli/utilities/error/serialize-error';
 import { putFileToUploadUrl } from '@/cli/utilities/file/put-file-to-upload-url';
+import { toPosixRelativePath } from '@/cli/utilities/file/to-posix-relative-path';
 import * as fs from 'fs';
-import path, { relative } from 'path';
+import path from 'path';
 import {
   APPLICATION_FILE_UPLOAD_BATCH_SIZE,
   OUTPUT_DIR,
@@ -60,7 +61,7 @@ export class FileUploader {
   ): Promise<FileUploadFailure[]> {
     const builtPathByRelativePath = new Map<string, string>(
       batch.map(({ builtPath }) => [
-        relative(OUTPUT_DIR, builtPath),
+        toPosixRelativePath(OUTPUT_DIR, builtPath),
         builtPath,
       ]),
     );
@@ -68,7 +69,7 @@ export class FileUploader {
     const uploadRequests: ApplicationFileUploadRequest[] = batch.map(
       ({ builtPath, fileFolder }) => ({
         fileFolder,
-        filePath: relative(OUTPUT_DIR, builtPath),
+        filePath: toPosixRelativePath(OUTPUT_DIR, builtPath),
         size: fs.statSync(path.join(this.appPath, builtPath)).size,
       }),
     );

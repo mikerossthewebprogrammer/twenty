@@ -79,6 +79,17 @@ export class FlatConnectionProviderValidatorService {
       }
     }
 
+    if (
+      flatConnectionProvider.type === 'credentials' &&
+      (flatConnectionProvider.credentialsConfig?.fields.length ?? 0) === 0
+    ) {
+      validationResult.errors.push({
+        code: ConnectionProviderExceptionCode.INVALID_CONNECTION_PROVIDER_INPUT,
+        message: t`Connection provider with type 'credentials' must declare at least one credentials field`,
+        userFriendlyMessage: msg`Credentials connection provider must declare at least one field`,
+      });
+    }
+
     const existingByName = Object.values(
       optimisticFlatConnectionProviderMaps.byUniversalIdentifier,
     ).find(

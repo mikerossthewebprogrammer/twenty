@@ -1,11 +1,20 @@
 import { Injectable } from '@nestjs/common';
 
+import { msg } from '@lingui/core/macro';
+import {
+  type SendAppChannelMessagePayload,
+  type SendAppChannelMessageResult,
+  type ValidateCredentialsPayload,
+  type ValidateCredentialsResult,
+} from 'twenty-shared/application';
 import { isDefined } from 'twenty-shared/utils';
 
 import { ConnectionProviderExceptionCode } from 'src/engine/core-modules/application/connection-provider/connection-provider-exception-code.enum';
 import { type ConnectionProviderEntity } from 'src/engine/core-modules/application/connection-provider/connection-provider.entity';
 import { ConnectionProviderException } from 'src/engine/core-modules/application/connection-provider/connection-provider.exception';
 import { ConnectionProviderService } from 'src/engine/core-modules/application/connection-provider/connection-provider.service';
+import { parseSendAppChannelMessageResult } from 'src/engine/core-modules/application/connection-provider/utils/parse-send-app-channel-message-result.util';
+import { parseValidateCredentialsResult } from 'src/engine/core-modules/application/connection-provider/utils/parse-validate-credentials-result.util';
 import { ExceptionHandlerService } from 'src/engine/core-modules/exception-handler/exception-handler.service';
 import { LogicFunctionExecutorService } from 'src/engine/core-modules/logic-function/logic-function-executor/logic-function-executor.service';
 import { LOGIC_FUNCTION_QUEUE_RETRY_BACKOFF } from 'src/engine/core-modules/logic-function/logic-function-trigger/constants/logic-function-queue-retry-backoff.constant';
@@ -18,7 +27,11 @@ import { MessageQueue } from 'src/engine/core-modules/message-queue/message-queu
 import { MessageQueueService } from 'src/engine/core-modules/message-queue/services/message-queue.service';
 import { WorkspaceCacheService } from 'src/engine/workspace-cache/services/workspace-cache.service';
 
-type ConnectionLifecycleHook = 'onConnect' | 'onDisconnect';
+type ConnectionLifecycleHook =
+  | 'onConnect'
+  | 'onDisconnect'
+  | 'onValidateCredentials'
+  | 'onSendMessage';
 
 type ConnectionLifecycleHookProvider = Pick<
   ConnectionProviderEntity,
@@ -33,6 +46,10 @@ const MISSING_LOGIC_FUNCTION_EXCEPTION_CODE_BY_HOOK: Record<
     ConnectionProviderExceptionCode.ON_CONNECT_LOGIC_FUNCTION_NOT_FOUND,
   onDisconnect:
     ConnectionProviderExceptionCode.ON_DISCONNECT_LOGIC_FUNCTION_NOT_FOUND,
+  onValidateCredentials:
+    ConnectionProviderExceptionCode.ON_VALIDATE_CREDENTIALS_LOGIC_FUNCTION_NOT_FOUND,
+  onSendMessage:
+    ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_NOT_FOUND,
 };
 
 @Injectable()
@@ -128,6 +145,115 @@ export class ConnectionProviderLifecycleHookService {
         );
       }
     });
+  }
+
+  // Runs inline and surfaces failures, unlike the best-effort hooks: the user
+  // is waiting on the form and bad credentials must never be stored.
+  async runOnValidateCredentials({
+    provider,
+    workspaceId,
+    userWorkspaceId,
+    credentials,
+  }: {
+    provider: Pick<
+      ConnectionProviderEntity,
+      | 'id'
+      | 'name'
+      | 'displayName'
+      | 'onValidateCredentialsLogicFunctionUniversalIdentifier'
+    >;
+    workspaceId: string;
+    userWorkspaceId: string;
+    credentials: Record<string, string>;
+  }): Promise<ValidateCredentialsResult | null> {
+    const logicFunctionId = await this.resolveLogicFunctionId({
+      hook: 'onValidateCredentials',
+      logicFunctionUniversalIdentifier:
+        provider.onValidateCredentialsLogicFunctionUniversalIdentifier,
+      provider,
+      workspaceId,
+    });
+
+    if (!isDefined(logicFunctionId)) {
+      return null;
+    }
+
+    const payload: ValidateCredentialsPayload = {
+      connectionProviderName: provider.name,
+      credentials,
+    };
+
+    const executionResult = await this.logicFunctionExecutorService.execute({
+      logicFunctionId,
+      workspaceId,
+      userWorkspaceId,
+      payload,
+      shouldEnforceUsageLimits: false,
+    });
+
+    if (isDefined(executionResult.error)) {
+      const reason = executionResult.error.errorMessage;
+      const providerDisplayName = provider.displayName;
+
+      throw new ConnectionProviderException(
+        `Connection provider ${provider.id} rejected the credentials: ${reason}`,
+        ConnectionProviderExceptionCode.INVALID_CREDENTIALS,
+        {
+          userFriendlyMessage: msg`${providerDisplayName} rejected these credentials: ${reason}`,
+        },
+      );
+    }
+
+    return parseValidateCredentialsResult(executionResult.data);
+  }
+
+  async runOnSendMessage({
+    provider,
+    workspaceId,
+    userWorkspaceId,
+    payload,
+  }: {
+    provider: Pick<
+      ConnectionProviderEntity,
+      'id' | 'name' | 'onSendMessageLogicFunctionUniversalIdentifier'
+    >;
+    workspaceId: string;
+    userWorkspaceId?: string;
+    payload: SendAppChannelMessagePayload;
+  }): Promise<SendAppChannelMessageResult> {
+    const logicFunctionId = await this.resolveLogicFunctionId({
+      hook: 'onSendMessage',
+      logicFunctionUniversalIdentifier:
+        provider.onSendMessageLogicFunctionUniversalIdentifier,
+      provider,
+      workspaceId,
+    });
+
+    if (!isDefined(logicFunctionId)) {
+      throw new ConnectionProviderException(
+        `Connection provider ${provider.id} does not declare an onSendMessage logic function`,
+        ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_NOT_FOUND,
+      );
+    }
+
+    const executionResult = await this.logicFunctionExecutorService.execute({
+      logicFunctionId,
+      workspaceId,
+      userWorkspaceId,
+      payload,
+    });
+
+    if (isDefined(executionResult.error)) {
+      const reason = executionResult.error.errorMessage;
+
+      throw new ConnectionProviderException(
+        `onSendMessage logic function of connection provider ${provider.id} failed: ${reason}`,
+        ConnectionProviderExceptionCode.ON_SEND_MESSAGE_LOGIC_FUNCTION_FAILED,
+        { userFriendlyMessage: msg`The message could not be sent: ${reason}` },
+      );
+    }
+
+    return parseSendAppChannelMessageResult(executionResult.data);
   }
 
   // Lifecycle hooks are best effort: a failing hook must never surface to the

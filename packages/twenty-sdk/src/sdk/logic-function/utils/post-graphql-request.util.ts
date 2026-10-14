@@ -9,13 +9,14 @@ export const postGraphqlRequest = async <TVariables, TData>({
   query,
   variables,
   caller,
+  accessToken = getApplicationAccessToken(),
 }: {
   query: string;
   variables: TVariables;
   caller: string;
+  accessToken?: string;
 }): Promise<TData> => {
   const apiUrl = process.env[DEFAULT_API_URL_NAME];
-  const accessToken = getApplicationAccessToken();
 
   if (!apiUrl || !accessToken) {
     throw new Error(
